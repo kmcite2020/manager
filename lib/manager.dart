@@ -1,6 +1,9 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 library manager;
 
+import 'dart:async';
+import 'dart:developer' as dev;
+
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -10,31 +13,59 @@ typedef Creator<T> = T Function();
 final _setStates = <Listener>[];
 void _addListener(Listener listener) => _setStates.add(listener);
 void _removeListener(Listener listener) => _setStates.remove(listener);
-// void _removeAllListeners() => _listeners.clear();
+void removeAllListeners() => _setStates.clear();
+
+final persistenceImpl = PersistenceImpl();
 
 class RM<T> {
-  static late Box box;
-
-  /// To enable persistence this method must be called and awaited in main();
-  static Future<void> initStorage() async {
-    await Hive.initFlutter();
-    final info = await PackageInfo.fromPlatform();
-    box = await Hive.openBox(info.appName);
+  static void logger(Object? payload) {
+    dev.log(payload.toString());
   }
 
-  factory RM.create(Creator<T> creator) => RM(creator);
+  static Future<void> initStorage() async {
+    return await persistenceImpl.initStorage();
+  }
+
+  factory RM.create(
+    Creator<T> creator, {
+    PersistenceSettings<T>? persistenceSettings,
+  }) =>
+      RM(
+        creator,
+        persistenceSettings: persistenceSettings,
+      );
 
   late T _state;
   final Creator<T> _creator;
-  final String? key;
-  final Persistence? persistence;
+  final PersistenceSettings<T>? persistenceSettings;
 
   RM(
     this._creator, {
-    this.key,
-    this.persistence,
+    this.persistenceSettings,
   }) {
     _state = _creator();
+    _initState();
+  }
+  void _initState() async {
+    final key = persistenceSettings?.key;
+    if (key != null) {
+      final json = persistenceImpl.read(key);
+      if (json != null) {
+        try {
+          // Deserialize the state from JSON
+          _state = await persistenceSettings!.fromJson!(json);
+        } catch (e) {
+          // Handle deserialization error
+          logger('Error deserializing state: $e');
+          _state = _creator();
+        }
+      } else {
+        _state = _creator();
+      }
+    } else {
+      _state = _creator();
+    }
+    _notifyUI();
   }
 
   T call([T? t]) {
@@ -42,9 +73,18 @@ class RM<T> {
       if (_state != t) {
         _state = t;
         _notifyUI();
+        _persistState();
       }
     }
-    return _state;
+    return _state!;
+  }
+
+  void _persistState() async {
+    final key = persistenceSettings?.key;
+    if (key != null) {
+      final json = persistenceSettings!.toJson!(_state!);
+      await persistenceImpl.write(key, json);
+    }
   }
 
   void _notifyUI() {
@@ -62,8 +102,6 @@ class RM<T> {
   static bool _logging = false;
   static void setLogging(bool value) => _logging = value;
 }
-
-class Persistence {}
 
 abstract class UI extends StatefulWidget {
   const UI({Key? key}) : super(key: key);
@@ -92,13 +130,67 @@ class ExtendedState extends State<UI> {
   }
 }
 
-// Map<String, dynamic> toJson<T extends ToJson>(T t) {
-//   return t.toJson();
-// }
+class PersistenceSettings<T> {
+  String? key;
+  FutureOr<T> Function(String json)? fromJson;
+  String Function(T s)? toJson;
+  PersistenceSettings({
+    this.key,
+    this.fromJson,
+    this.toJson,
+  });
+}
 
-// abstract class ToJson {
-//   Map<String, dynamic> toJson<T>();
-//   fromJson<T>(json);
-// }
+abstract class Persistence {
+  Future<void> initStorage();
+  Object? read(String key);
+  Future<void> write(String key, String value);
+  Future<void> delete(String key);
+  Future<int> clearAll();
+}
 
-// class Save<T> {}
+class PersistenceImpl implements Persistence {
+  static late Box box;
+  @override
+  Future<int> clearAll() => box.clear();
+
+  @override
+  Future<void> delete(String key) => box.delete(key);
+
+  @override
+  Future<void> initStorage() async {
+    await Hive.initFlutter();
+    final info = await PackageInfo.fromPlatform();
+    box = await Hive.openBox(info.appName);
+  }
+
+  @override
+  String? read(String key) => box.get(key);
+
+  @override
+  Future<void> write(String key, String value) => box.put(key, value);
+}
+
+
+// class RM<T> {
+//   final _controller = StreamController<T>.broadcast();
+//   T _lastValue;
+
+//   RM(T initialValue) : _lastValue = initialValue {
+//     _controller.add(initialValue);
+//   }
+
+//   Stream<T> get stream => _controller.stream;
+//   T get value => _lastValue;
+
+//   set value(T newValue) {
+//     if (_lastValue != newValue) {
+//       _lastValue = newValue;
+//       _controller.add(newValue);
+//     }
+//   }
+
+//   void dispose() {
+//     _controller.close();
+//   }
+// }
