@@ -4,26 +4,17 @@ import 'package:flutter/widgets.dart';
 
 typedef Listener = void Function(void Function());
 typedef Creator<T> = T Function();
-final listeners = <Listener>[];
-void addListener(Listener listener) => listeners.add(listener);
-void removeListener(Listener listener) => listeners.remove(listener);
-void removeAllListeners() => listeners.clear();
+final _listeners = <Listener>[];
+void _addListener(Listener listener) => _listeners.add(listener);
+void _removeListener(Listener listener) => _listeners.remove(listener);
+// void _removeAllListeners() => _listeners.clear();
 
 class RM {
-  static Manager<State> create<State>(
-    Creator<State> creator,
-  ) {
-    return Manager._(creator);
-  }
+  factory RM.create(Creator<State> creator) => RM._(creator);
 
-  static bool _logging = false;
-  static void setLogging(bool value) => _logging = value;
-}
-
-class Manager<State> {
   late State _state;
   final Creator<State> _creator;
-  Manager._(this._creator) {
+  RM._(this._creator) {
     _state = _creator();
   }
   State call([State? t]) {
@@ -37,7 +28,7 @@ class Manager<State> {
   }
 
   void _notifyUI() {
-    for (final ui in listeners) {
+    for (final ui in _listeners) {
       ui(
         () {
           // ignore: avoid_print
@@ -49,6 +40,8 @@ class Manager<State> {
 
   @override
   String toString() => '$runtimeType(value:$_state)';
+  static bool _logging = false;
+  static void setLogging(bool value) => _logging = value;
 }
 
 abstract class UI extends StatefulWidget {
@@ -60,10 +53,12 @@ abstract class UI extends StatefulWidget {
 }
 
 class ExtendedState extends State<UI> {
+  late Listener listener;
   @override
   void initState() {
     super.initState();
-    addListener(setState);
+    listener = setState;
+    _addListener(listener);
   }
 
   @override
@@ -71,7 +66,7 @@ class ExtendedState extends State<UI> {
 
   @override
   void dispose() {
-    removeAllListeners();
+    _removeListener(listener);
     super.dispose();
   }
 }
