@@ -1,23 +1,43 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 library manager;
 
 import 'package:flutter/widgets.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 typedef Listener = void Function(void Function());
 typedef Creator<T> = T Function();
-final _listeners = <Listener>[];
-void _addListener(Listener listener) => _listeners.add(listener);
-void _removeListener(Listener listener) => _listeners.remove(listener);
+final _setStates = <Listener>[];
+void _addListener(Listener listener) => _setStates.add(listener);
+void _removeListener(Listener listener) => _setStates.remove(listener);
 // void _removeAllListeners() => _listeners.clear();
 
-class RM {
-  factory RM.create(Creator<State> creator) => RM._(creator);
+class RM<T> {
+  static late Box box;
 
-  late State _state;
-  final Creator<State> _creator;
-  RM._(this._creator) {
+  /// To enable persistence this method must be called and awaited in main();
+  static Future<void> initStorage() async {
+    await Hive.initFlutter();
+    final info = await PackageInfo.fromPlatform();
+    box = await Hive.openBox(info.appName);
+  }
+
+  factory RM.create(Creator<T> creator) => RM(creator);
+
+  late T _state;
+  final Creator<T> _creator;
+  final String? key;
+  final Persistence? persistence;
+
+  RM(
+    this._creator, {
+    this.key,
+    this.persistence,
+  }) {
     _state = _creator();
   }
-  State call([State? t]) {
+
+  T call([T? t]) {
     if (t != null) {
       if (_state != t) {
         _state = t;
@@ -28,10 +48,9 @@ class RM {
   }
 
   void _notifyUI() {
-    for (final ui in _listeners) {
-      ui(
+    for (final setState in _setStates) {
+      setState(
         () {
-          // ignore: avoid_print
           if (RM._logging) print(this);
         },
       );
@@ -43,6 +62,8 @@ class RM {
   static bool _logging = false;
   static void setLogging(bool value) => _logging = value;
 }
+
+class Persistence {}
 
 abstract class UI extends StatefulWidget {
   const UI({Key? key}) : super(key: key);
@@ -70,3 +91,14 @@ class ExtendedState extends State<UI> {
     super.dispose();
   }
 }
+
+// Map<String, dynamic> toJson<T extends ToJson>(T t) {
+//   return t.toJson();
+// }
+
+// abstract class ToJson {
+//   Map<String, dynamic> toJson<T>();
+//   fromJson<T>(json);
+// }
+
+// class Save<T> {}
