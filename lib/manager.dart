@@ -1,196 +1,236 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-library manager;
-
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer' as dev;
 
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-typedef Listener = void Function(void Function());
-typedef Creator<T> = T Function();
-final _setStates = <Listener>[];
-void _addListener(Listener listener) => _setStates.add(listener);
-void _removeListener(Listener listener) => _setStates.remove(listener);
-void removeAllListeners() => _setStates.clear();
+/// Logging mechanism
+void inform(String message) {
+  dev.log(message);
+}
 
-final persistenceImpl = PersistenceImpl();
+/// Implementation for persistence of States
+class Saver {
+  late Box _box;
+
+  Future<void> init() async {
+    try {
+      await Hive.initFlutter();
+      final info = await PackageInfo.fromPlatform();
+      _box = await Hive.openBox(info.appName);
+    } catch (e) {
+      // Handle the error here, you can log it or show a user-friendly message.
+      inform('Error during initialization: $e');
+    }
+  }
+
+  String? read(String key) {
+    try {
+      return _box.get(key);
+    } catch (e) {
+      inform('Error during read operation: $e');
+      return null;
+    }
+  }
+
+  Future<void> write(String key, String value) async {
+    try {
+      await _box.put(key, value);
+    } catch (e) {
+      inform('Error during write operation: $e');
+    }
+  }
+
+  Future<void> delete(String key) async {
+    try {
+      await _box.delete(key);
+    } catch (e) {
+      inform('Error during delete operation: $e');
+    }
+  }
+
+  Future<int> clearAll() async {
+    try {
+      return await _box.clear();
+    } catch (e) {
+      inform('Error during clearAll operation: $e');
+      return 0;
+    }
+  }
+}
+
+class Save<T> {
+  String key;
+  T Function(Map<String, dynamic> json) fromJson;
+  Map<String, dynamic> Function(T s) toJson;
+  Save({
+    required this.key,
+    required this.fromJson,
+    required this.toJson,
+  });
+}
 
 class RM<T> {
-  static void logger(Object? payload) {
-    dev.log(payload.toString());
+  static final saver = Saver();
+  RM.create(
+    T Function() creator, {
+    Save<T>? save,
+  }) : _save = save {
+    _initState(creator);
   }
-
-  static Future<void> initStorage() async {
-    return await persistenceImpl.initStorage();
+  RM.future(
+    Future<T> Function() creator, {
+    this.initialState,
+    Save<T>? save,
+  }) : _save = save {
+    _initState(creator);
   }
-
-  factory RM.create(
-    Creator<T> creator, {
-    PersistenceSettings<T>? persistenceSettings,
-  }) =>
-      RM(
-        creator,
-        persistenceSettings: persistenceSettings,
-      );
-
-  late T _state;
-  final Creator<T> _creator;
-  final PersistenceSettings<T>? persistenceSettings;
-
-  RM(
-    this._creator, {
-    this.persistenceSettings,
-  }) {
-    _state = _creator();
-    _initState();
+  RM.stream(
+    Stream<T> Function() creator, {
+    this.initialState,
+    Save<T>? save,
+  }) : _save = save {
+    _initState(creator);
   }
-  void _initState() async {
-    final key = persistenceSettings?.key;
-    if (key != null) {
-      final json = persistenceImpl.read(key);
+  static final notifiers = <Notifier>[];
+
+  /// Save Configuration
+  final Save<T>? _save;
+  bool get persistable => _save != null;
+  String? get key => _save?.key;
+  T Function(Map<String, dynamic>)? get fromJson => _save?.fromJson;
+  Map<String, dynamic> Function(T)? get toJson => _save?.toJson;
+
+  T? initialState;
+  T? _state;
+
+  late StreamSubscription<T>? streamSubscription;
+
+  set state(T state) {
+    _state = state;
+    if (persistable) {
+      final json = toJson?.call(state);
       if (json != null) {
-        try {
-          // Deserialize the state from JSON
-          _state = await persistenceSettings!.fromJson!(json);
-        } catch (e) {
-          // Handle deserialization error
-          logger('Error deserializing state: $e');
-          _state = _creator();
-        }
-      } else {
-        _state = _creator();
+        saver.write(
+          _save!.key,
+          jsonEncode(json),
+        );
       }
-    } else {
-      _state = _creator();
     }
-    _notifyUI();
+    _notify();
   }
 
-  T call([T? t]) {
-    if (t != null) {
-      if (_state != t) {
-        _state = t;
-        _notifyUI();
-        _persistState();
-      }
-    }
+  T get state {
+    readPersistentStateIfPersistable(key);
+    _state ??= initialState;
     return _state!;
   }
 
-  void _persistState() async {
-    final key = persistenceSettings?.key;
-    if (key != null) {
-      final json = persistenceSettings!.toJson!(_state!);
-      await persistenceImpl.write(key, json);
+  T call([T? newState]) {
+    if (newState != null) {
+      state = newState;
+    }
+    return state;
+  }
+
+  bool get loading => _state == null;
+
+  void _initState(creator) async {
+    if (creator is Future<T> Function()) {
+      state = await creator();
+      if (readPersistentStateIfPersistable(key)) return;
+    } else if (creator is Stream<T> Function()) {
+      streamSubscription = creator().listen((newState) => state = newState);
+      if (readPersistentStateIfPersistable(key)) return;
+    } else {
+      if (readPersistentStateIfPersistable(key)) return;
+      state = creator();
     }
   }
 
-  void _notifyUI() {
-    for (final setState in _setStates) {
-      setState(
-        () {
-          if (RM._logging) print(this);
-        },
-      );
+  bool readPersistentStateIfPersistable(String? key) {
+    if (persistable) {
+      final str = saver.read(key!);
+      if (str != null) {
+        _state = fromJson?.call(jsonDecode(str));
+      }
     }
+    return persistable;
   }
 
-  @override
-  String toString() => '$runtimeType(value:$_state)';
-  static bool _logging = false;
-  static void setLogging(bool value) => _logging = value;
+  void _notify() {
+    WidgetsBinding.instance.addPostFrameCallback(
+      (timeStamp) {
+        for (final notifier in notifiers) {
+          notifier(
+            // ignore: avoid_inform
+            () => inform("$runtimeType $timeStamp"),
+          );
+        }
+      },
+    );
+  }
+
+  void dispose() => streamSubscription?.cancel();
+
+  static Future<void> initStorage() {
+    return saver.init();
+  }
 }
 
 abstract class UI extends StatefulWidget {
-  const UI({Key? key}) : super(key: key);
+  const UI({super.key});
 
   @override
-  ExtendedState createState() => ExtendedState();
+  State<UI> createState() => ExtendedState();
   Widget build(BuildContext context);
 }
 
 class ExtendedState extends State<UI> {
-  late Listener listener;
+  late Notifier notifier;
   @override
   void initState() {
     super.initState();
-    listener = setState;
-    _addListener(listener);
+    notifier = setState;
+    RM.notifiers.add(notifier);
   }
 
   @override
-  Widget build(BuildContext context) => widget.build(context);
+  Widget build(BuildContext context) {
+    return widget.build(context);
+  }
 
   @override
   void dispose() {
-    _removeListener(listener);
+    RM.notifiers.remove(notifier);
     super.dispose();
   }
 }
 
-class PersistenceSettings<T> {
-  String? key;
-  FutureOr<T> Function(String json)? fromJson;
-  String Function(T s)? toJson;
-  PersistenceSettings({
-    this.key,
-    this.fromJson,
-    this.toJson,
+typedef Notifier = void Function(void Function());
+
+class ReactiveModelBuilder extends UI {
+  const ReactiveModelBuilder({
+    super.key,
+    required this.builder,
+    required this.reactiveModel,
   });
-}
 
-abstract class Persistence {
-  Future<void> initStorage();
-  Object? read(String key);
-  Future<void> write(String key, String value);
-  Future<void> delete(String key);
-  Future<int> clearAll();
-}
-
-class PersistenceImpl implements Persistence {
-  static late Box box;
+  final Widget Function(BuildContext context) builder;
+  final RM reactiveModel;
   @override
-  Future<int> clearAll() => box.clear();
-
-  @override
-  Future<void> delete(String key) => box.delete(key);
-
-  @override
-  Future<void> initStorage() async {
-    await Hive.initFlutter();
-    final info = await PackageInfo.fromPlatform();
-    box = await Hive.openBox(info.appName);
+  Widget build(BuildContext context) {
+    return builder(context);
   }
-
-  @override
-  String? read(String key) => box.get(key);
-
-  @override
-  Future<void> write(String key, String value) => box.put(key, value);
 }
 
-
-// class RM<T> {
-//   final _controller = StreamController<T>.broadcast();
-//   T _lastValue;
-
-//   RM(T initialValue) : _lastValue = initialValue {
-//     _controller.add(initialValue);
-//   }
-
-//   Stream<T> get stream => _controller.stream;
-//   T get value => _lastValue;
-
-//   set value(T newValue) {
-//     if (_lastValue != newValue) {
-//       _lastValue = newValue;
-//       _controller.add(newValue);
-//     }
-//   }
-
-//   void dispose() {
-//     _controller.close();
-//   }
-// }
+extension RMExtensions<T> on RM<T> {
+  Widget build(Widget Function(T state) widget) {
+    return ReactiveModelBuilder(
+      builder: (builder) => widget(state),
+      reactiveModel: this,
+    );
+  }
+}

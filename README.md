@@ -1,39 +1,59 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# manager
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages).
+A new Global State Manger.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages).
--->
+## Getting Started
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+Heavily inspired from States_Rebuilder library.
 
-## Features
+### Simple Usage
+``` dart
+final materialColorRM = RM.create(
+  () => Colors.blue,
+);
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
-
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
-
-## Usage
-
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
-
-```dart
-const like = 'sample';
+MaterialColor get color => materialColorRM();
+set color(MaterialColor value) => materialColorRM(value);
 ```
+### Reacting to changes in RMs
+To make UI react to the changes in the created state. Implement UI widget instead of Stateless or Statefull widget
+```dart
+class ExampleWidget extends UI {
+  const ExampleWidget({super.key});
 
-## Additional information
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: materialColorRM(),
+        ),
+      ),
+    );
+  }
+}
+```
+### Use the build method on RM
+or use build method on the createdRM object.
+```dart
+final integerRM = RM.create(() => 5);
+class MyHomePage extends StatelessWidget {
+  const MyHomePage({
+    super.key,
+    required this.title,
+  });
+  final String title;
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: integerRM.build(
+        (state) => Text(
+          state.toString(),
+        ),
+      ),
+    );
+  }
+}
+```
+by using Stateless Widget we still can rebuild UI when we use the build method of created object and we can acess current state too.
