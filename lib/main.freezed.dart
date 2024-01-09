@@ -147,3 +147,136 @@ abstract class _Counter extends Counter {
   _$$CounterImplCopyWith<_$CounterImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
+
+Safer _$SaferFromJson(Map<String, dynamic> json) {
+  return _Safer.fromJson(json);
+}
+
+/// @nodoc
+mixin _$Safer {
+  int get g => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $SaferCopyWith<Safer> get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SaferCopyWith<$Res> {
+  factory $SaferCopyWith(Safer value, $Res Function(Safer) then) =
+      _$SaferCopyWithImpl<$Res, Safer>;
+  @useResult
+  $Res call({int g});
+}
+
+/// @nodoc
+class _$SaferCopyWithImpl<$Res, $Val extends Safer>
+    implements $SaferCopyWith<$Res> {
+  _$SaferCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? g = null,
+  }) {
+    return _then(_value.copyWith(
+      g: null == g
+          ? _value.g
+          : g // ignore: cast_nullable_to_non_nullable
+              as int,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$SaferImplCopyWith<$Res> implements $SaferCopyWith<$Res> {
+  factory _$$SaferImplCopyWith(
+          _$SaferImpl value, $Res Function(_$SaferImpl) then) =
+      __$$SaferImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({int g});
+}
+
+/// @nodoc
+class __$$SaferImplCopyWithImpl<$Res>
+    extends _$SaferCopyWithImpl<$Res, _$SaferImpl>
+    implements _$$SaferImplCopyWith<$Res> {
+  __$$SaferImplCopyWithImpl(
+      _$SaferImpl _value, $Res Function(_$SaferImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? g = null,
+  }) {
+    return _then(_$SaferImpl(
+      g: null == g
+          ? _value.g
+          : g // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$SaferImpl implements _Safer {
+  const _$SaferImpl({this.g = 7});
+
+  factory _$SaferImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SaferImplFromJson(json);
+
+  @override
+  @JsonKey()
+  final int g;
+
+  @override
+  String toString() {
+    return 'Safer(g: $g)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SaferImpl &&
+            (identical(other.g, g) || other.g == g));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(runtimeType, g);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SaferImplCopyWith<_$SaferImpl> get copyWith =>
+      __$$SaferImplCopyWithImpl<_$SaferImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SaferImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _Safer implements Safer {
+  const factory _Safer({final int g}) = _$SaferImpl;
+
+  factory _Safer.fromJson(Map<String, dynamic> json) = _$SaferImpl.fromJson;
+
+  @override
+  int get g;
+  @override
+  @JsonKey(ignore: true)
+  _$$SaferImplCopyWith<_$SaferImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}

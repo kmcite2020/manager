@@ -7,7 +7,7 @@ A new Global State Manger.
 Heavily inspired from States_Rebuilder library.
 
 
-## adding library to your project
+## Adding library to your project
 ```yaml
   manager:
     git: https://github.com/kmcite2020/manager
@@ -15,9 +15,13 @@ Heavily inspired from States_Rebuilder library.
 
 ## Recommended packages
 build_runner
+
 json_annotation
+
 json_serializable
+
 freezed
+
 freezed_annotation
 
 Persistence of state works with these libraries. Only objects with created with json_serializable can be persisted.
@@ -73,3 +77,51 @@ class MyHomePage extends StatelessWidget {
 }
 ```
 by using Stateless Widget we still can rebuild UI when we use the build method of created object and we can acess current state too.
+### Persistence
+You can persist your state.
+When creating a State pass Save() object and your state will be easily persistable.
+
+Also you need to enablePersistence.
+```dart
+void main() async {
+  /// Use this method to enable persistence
+  await RM.initStorage();
+}
+```
+
+### For example for this freezed class
+```dart
+@freezed
+class Counter with _$Counter {
+  const factory Counter({
+    @Default(0) final int value,
+  }) = _Counter;
+  const Counter._();
+  int call() => value;
+
+  factory Counter.fromJson(Map<String, dynamic> json) =>
+      _$CounterFromJson(json);
+}
+```
+```dart
+final counterRM = RM.create(
+  const Counter(),
+  save: Save.freezed(
+    key: 'future',
+    fromJson: Counter.fromJson,
+  ),
+);
+```
+### Planning
+navigation
+
+form Fields
+
+examples
+
+documentation
+
+
+### Dr. Adnan Farooq
+
+A newbie flutter/dart developer

@@ -8,3 +8,16 @@ extension ObjectExtensions on Object? {
     );
   }
 }
+
+extension WidgetExtensions on Widget {
+  Widget pad({double? padding_}) {
+    return Padding(
+      padding: EdgeInsets.all(padding_ ?? 8),
+      child: this,
+    );
+  }
+
+  Widget center({double? textScaleFactor}) {
+    return Center(child: this);
+  }
+}
