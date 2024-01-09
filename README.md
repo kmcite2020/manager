@@ -6,6 +6,22 @@ A new Global State Manger.
 
 Heavily inspired from States_Rebuilder library.
 
+
+## adding library to your project
+```yaml
+  manager:
+    git: https://github.com/kmcite2020/manager
+```
+
+## Recommended packages
+build_runner
+json_annotation
+json_serializable
+freezed
+freezed_annotation
+
+Persistence of state works with these libraries. Only objects with created with json_serializable can be persisted.
+
 ### Simple Usage
 ``` dart
 final materialColorRM = RM.create(
