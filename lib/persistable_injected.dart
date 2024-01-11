@@ -26,17 +26,25 @@ class PersistableInjected<T> extends Injected<T> {
   }
 
   void readPersistentState() {
-    final jsonString = box.get(key);
-    if (jsonString == null) {}
-    final jsonMap = jsonDecode(jsonString);
-    final object = fromJson!(jsonMap);
-    state = object;
+    try {
+      final jsonString = box.get(key);
+      if (jsonString == null) {}
+      final jsonMap = jsonDecode(jsonString);
+      final object = fromJson!(jsonMap);
+      state = object;
+    } catch (e) {
+      inform(e.toString());
+    }
   }
 
   void writePersistentState() async {
-    final jsonMap = toJson(state);
-    final jsonString = jsonEncode(jsonMap);
-    await box.put(key, jsonString);
+    try {
+      final jsonMap = toJson(state);
+      final jsonString = jsonEncode(jsonMap);
+      await box.put(key, jsonString);
+    } catch (e) {
+      inform(e.toString());
+    }
   }
 
   @override
