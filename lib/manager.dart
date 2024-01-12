@@ -7,6 +7,7 @@ import 'dart:developer' as dev;
 
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:manager/main.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 part 'stream_injected.dart';
@@ -41,8 +42,11 @@ void _resetStates() {
   }
 }
 
+Future<void> _deletePersistentStates() => box.clear();
+
 /// Surface API
 abstract class RM<T> {
+  static const deletePersistentStates = _deletePersistentStates;
   static const initStorage = _initStorage;
   static const resetStates = _resetStates;
 
@@ -62,21 +66,22 @@ abstract class RM<T> {
 
   /// Simple State Management
   static SimpleInjected<T> simple<T>(
-    T Function() invoker,
+    T Function() creator,
   ) {
-    return SimpleInjected<T>(invoker);
+    return SimpleInjected<T>(creator);
   }
 
   /// Not recommended yet
   /// Cache a Future and use it anywhere
   static FutureInjected<T> future<T>(
-    Future<T> Function() invoker,
+    Future<T> Function() creator,
   ) {
-    return FutureInjected<T>(invoker);
+    return FutureInjected<T>(creator);
   }
 
   /// Not recommended yet
   /// Create a stream of data and use it in UI.
+  /// Currently its a single time subscription.
   static StreamInjected<T> stream<T>(Stream<T> Function() creator) {
     return StreamInjected(creator);
   }

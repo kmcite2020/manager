@@ -2,11 +2,10 @@
 
 part of 'manager.dart';
 
-class PersistableInjected<T> extends Injected<T> {
+class PersistableInjected<T> {
   String? key;
   T Function(Map<String, dynamic> json)? fromJson;
   T Function() creator;
-  @override
   T? _state;
   bool get persistable => key != null && fromJson != null;
   PersistableInjected(
@@ -15,11 +14,7 @@ class PersistableInjected<T> extends Injected<T> {
     this.fromJson,
   }) {
     if (persistable) {
-      readPersistentState();
-    } else if (key == null) {
-      throw 'Invalid key';
-    } else if (fromJson == null) {
-      throw 'Invalid fromJson';
+      // readPersistentState();
     } else {
       throw 'Unexpected';
     }
@@ -28,12 +23,15 @@ class PersistableInjected<T> extends Injected<T> {
   void readPersistentState() {
     try {
       final jsonString = box.get(key);
-      if (jsonString == null) {}
+      if (jsonString == null) {
+        // writePersistentState();
+        throw 'Error: State is not persisted yet';
+      }
       final jsonMap = jsonDecode(jsonString);
       final object = fromJson!(jsonMap);
       state = object;
     } catch (e) {
-      inform(e.toString());
+      inform('Read: $e');
     }
   }
 
@@ -43,35 +41,40 @@ class PersistableInjected<T> extends Injected<T> {
       final jsonString = jsonEncode(jsonMap);
       await box.put(key, jsonString);
     } catch (e) {
-      inform(e.toString());
+      inform('Write: $e');
     }
   }
 
-  @override
+  T get state {
+    try {
+      // readPersistentState();
+      return _state!;
+    } catch (e) {
+      return creator();
+    }
+  }
+
   set state(T t) {
-    super.state = t;
+    // super.state = t;
     if (persistable) {
       writePersistentState();
     }
+    state = t;
   }
 
-  @override
   T call([T? t]) {
-    final result = super.call(t);
+    final result = call(t);
     if (t != null && persistable) {
       writePersistentState();
     }
     return result;
   }
 
-  @override
   bool get loading => _state == null;
 
-  @override
   void reset() {
     state = creator();
   }
 
-  @override
   Widget build(Widget Function(T state) builder) => builder(state);
 }

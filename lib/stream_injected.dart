@@ -1,16 +1,23 @@
-// ignore_for_file: overridden_fields, annotate_overrides
-
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'manager.dart';
 
 class StreamInjected<T> extends Injected<T> {
+  // ignore: annotate_overrides, overridden_fields
+  T? initialState;
+  @override
+  bool get loading => initialState == null;
   Stream<T> Function() creator;
-  T? _state;
   StreamSubscription<T>? subscription;
-  StreamInjected(this.creator) {
-    subscribe();
+
+  StreamInjected(
+    this.creator, {
+    this.initialState,
+  }) {
+    reset();
   }
 
-  void subscribe() {
+  @override
+  void reset() {
     subscription = creator().listen(
       (event) {
         state = event;
@@ -20,18 +27,50 @@ class StreamInjected<T> extends Injected<T> {
   }
 
   @override
-  bool get loading => _state == null;
+  void notify() {
+    for (final notifier in notifiers) {
+      notifier(
+        () {},
+      );
+    }
+  }
 
   @override
-  void reset() => subscribe();
-  void dispose() => subscription?.cancel();
+  T get state => initialState!;
+  @override
+  set state(T value) => initialState = value;
   @override
   Widget build(Widget Function(T state) builder) {
-    return StreamBuilder(
-      stream: creator(),
-      builder: (context, snapshot) {
-        return builder(state);
-      },
+    return StreamUI(
+      injected: this,
+      builder: builder,
     );
+  }
+
+  void dispose() {
+    // subscription?.cancel();
+    // inform('dispose happened');
+  }
+
+  @override
+  T call([T? t]) => initialState!;
+}
+
+class StreamUI<T> extends UI {
+  const StreamUI({
+    super.key,
+    required this.injected,
+    required this.builder,
+  });
+  final StreamInjected<T> injected;
+  final Widget Function(T state) builder;
+
+  @override
+  Widget build(BuildContext context) {
+    if (injected.loading) {
+      return const CircularProgressIndicator().pad();
+    } else {
+      return builder(injected.state);
+    }
   }
 }

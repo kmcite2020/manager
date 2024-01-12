@@ -1,13 +1,34 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 // ignore_for_file: overridden_fields
 
 part of 'manager.dart';
 
 class SimpleInjected<T> extends Injected<T> {
-  T Function() creator;
   @override
-  T? _state;
+  T? initialState;
+  @override
+  T get state => initialState!;
+  @override
+  set state(T t) {
+    initialState = t;
+    notify();
+  }
+
+  @override
+  T call([T? t]) => t != null ? state = t : state;
+
+  @override
+  void notify() => WidgetsBinding.instance.addPostFrameCallback(
+        (timeStamp) {
+          for (final notifier in notifiers) {
+            notifier(() {});
+          }
+        },
+      );
+
+  T Function() creator;
   SimpleInjected(this.creator) {
-    _state = creator();
+    initialState = creator();
   }
 
   @override
@@ -15,8 +36,27 @@ class SimpleInjected<T> extends Injected<T> {
     state = creator();
   }
 
+  bool get initial => state == creator();
   @override
-  bool get loading => _state == null;
+  Widget build(Widget Function(T state) builder) {
+    return SimpleUI(
+      simpleInjected: this,
+      builder: (state) => builder(state),
+    );
+  }
+
   @override
-  Widget build(Widget Function(T state) builder) => builder(state);
+  bool get loading => throw UnimplementedError();
+}
+
+class SimpleUI<T> extends UI {
+  const SimpleUI({
+    super.key,
+    required this.builder,
+    required this.simpleInjected,
+  });
+  final Widget Function(T context) builder;
+  final SimpleInjected<T> simpleInjected;
+  @override
+  Widget build(BuildContext context) => builder(simpleInjected.state);
 }

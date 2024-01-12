@@ -1,34 +1,25 @@
 part of 'manager.dart';
 
 abstract class Injected<T> {
+  /// Is Initialised
   bool get loading;
 
-  /// Standard API -> .state
-  T? _state;
-  T get state => _state!;
-  set state(T t) {
-    _state = t;
-    notify();
-  }
+  /// Initial State
+  T? initialState;
 
-  /// Callable API
-  T call([T? t]) {
-    if (t != null) {
-      state = t;
-    }
-    return state;
-  }
+  /// Standard API -> .state
+  T get state;
+  set state(T t);
+
+  /// Callable API -> ()
+  T call([T? t]);
 
   /// Notification to UI
-  void notify() => WidgetsBinding.instance.addPostFrameCallback(
-        (timeStamp) {
-          for (final notifier in notifiers) {
-            notifier(() {});
-          }
-        },
-      );
+  void notify();
 
   /// UI -> Builder Pattern
   Widget build(Widget Function(T state) builder);
+
+  /// Reset Injected State
   void reset();
 }

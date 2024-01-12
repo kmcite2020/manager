@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'manager.dart';
 
 abstract class UI extends StatefulWidget {
@@ -6,6 +7,7 @@ abstract class UI extends StatefulWidget {
   @override
   State<UI> createState() => ExtendedState();
   Widget build(BuildContext context);
+  void dispose() {}
 }
 
 class ExtendedState extends State<UI> {
@@ -25,6 +27,7 @@ class ExtendedState extends State<UI> {
   @override
   void dispose() {
     notifiers.remove(notifier);
+    widget.dispose();
     super.dispose();
   }
 }
