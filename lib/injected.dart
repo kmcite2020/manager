@@ -10,6 +10,7 @@ abstract class Injected<T> {
   /// Standard API -> .state
   T get state;
   set state(T t);
+  void update(T t);
 
   /// Callable API -> ()
   T call([T? t]);

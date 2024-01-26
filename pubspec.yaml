@@ -19,12 +19,11 @@ dependencies:
   path_provider: ^2.1.2
   colornames: ^0.1.0
   flex_color_scheme: ^7.3.1
-  signals: ^2.1.10
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  # flutter_lints: ^2.0.0
 flutter:
 
   # The following line ensures that the Material Icons font is

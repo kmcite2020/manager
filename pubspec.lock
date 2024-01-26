@@ -238,14 +238,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_lints:
-    dependency: "direct dev"
-    description:
-      name: flutter_lints
-      sha256: a25a15ebbdfc33ab1cd26c63a6ee519df92338a9c10f122adda92938253bef04
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.3"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -368,14 +360,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.7.1"
-  lints:
-    dependency: transitive
-    description:
-      name: lints
-      sha256: "0a217c6c989d21039f1498c3ed9f3ed71b354e69873f13a8dfc3c9fe76f1b452"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.1"
   logging:
     dependency: transitive
     description:
@@ -552,30 +536,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
-  signals:
-    dependency: "direct main"
-    description:
-      name: signals
-      sha256: a7ba857a3a6955404e0ba868f86d8490d4c04604766c65ccefb7ba807ef70e42
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.10"
-  signals_core:
-    dependency: transitive
-    description:
-      name: signals_core
-      sha256: "96ca555b5881d1b7a7b521cec9ac64c56eacc75b54a79a76e73eb0d7bcbad82e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.6"
-  signals_flutter:
-    dependency: transitive
-    description:
-      name: signals_flutter
-      sha256: ab0e7376fd4b1fbf2f427d431bcf35a1eb2251308feb35f7b770b6f95b5677e6
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.8"
   sky_engine:
     dependency: transitive
     description: flutter

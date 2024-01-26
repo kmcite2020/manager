@@ -38,8 +38,10 @@ class SimpleInjected<T> extends Injected<T> {
 
   bool get initial => state == creator();
   @override
-  Widget build(Widget Function(T state) builder) {
-    return SimpleUI(
+  Widget build(
+    Widget Function(T state) builder,
+  ) {
+    return SimpleUI<T>(
       simpleInjected: this,
       builder: (state) => builder(state),
     );
@@ -47,11 +49,31 @@ class SimpleInjected<T> extends Injected<T> {
 
   @override
   bool get loading => throw UnimplementedError();
+
+  Widget on(
+    Widget Function() loading,
+    Widget Function(dynamic e, dynamic t) error,
+    Widget Function(T state) data,
+  ) {
+    try {
+      if (initial) {
+        return loading();
+      } else {
+        return data(state);
+      }
+    } catch (e) {
+      return error(e, e);
+    }
+  }
+
+  @override
+  void update(T t) {
+    // TODO: implement update
+  }
 }
 
-class SimpleUI<T> extends UI {
+class SimpleUI<T> extends GUI {
   const SimpleUI({
-    super.key,
     required this.builder,
     required this.simpleInjected,
   });

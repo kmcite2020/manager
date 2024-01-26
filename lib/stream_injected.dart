@@ -54,9 +54,14 @@ class StreamInjected<T> extends Injected<T> {
 
   @override
   T call([T? t]) => initialState!;
+
+  @override
+  void update(T t) {
+    // TODO: implement update
+  }
 }
 
-class StreamUI<T> extends UI {
+class StreamUI<T> extends GUI {
   const StreamUI({
     super.key,
     required this.injected,

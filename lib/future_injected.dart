@@ -6,7 +6,6 @@ class FutureInjected<T> extends Injected<T> {
   T? initialState;
   bool get loading => initialState == null;
   Future<T> Function() creator;
-
   FutureInjected(this.creator) {
     reset();
   }
@@ -59,5 +58,11 @@ class FutureInjected<T> extends Injected<T> {
   void dispose() {
     // subscription?.cancel();
     // inform('dispose happened');
+  }
+
+  @override
+  void update(T t) {
+    initialState = t;
+    notify();
   }
 }
