@@ -1,26 +1,26 @@
-part of 'manager.dart';
+// part of 'manager.dart';
 
-abstract class Injected<T> {
-  /// Is Initialised
-  bool get loading;
+// abstract class Injected<T> {
+//   /// Is Initialised
+//   bool get loading;
 
-  /// Initial State
-  T? initialState;
+//   /// Initial State
+//   T? initialState;
 
-  /// Standard API -> .state
-  T get state;
-  set state(T t);
-  void update(T t);
+//   /// Standard API -> .state
+//   T get state;
+//   set state(T t);
+//   void update(T t);
 
-  /// Callable API -> ()
-  T call([T? t]);
+//   /// Callable API -> ()
+//   T call([T? t]);
 
-  /// Notification to UI
-  void notify();
+//   /// Notification to UI
+//   void notify();
 
-  /// UI -> Builder Pattern
-  Widget build(Widget Function(T state) builder);
+//   /// UI -> Builder Pattern
+//   Widget build(Widget Function(T state) builder);
 
-  /// Reset Injected State
-  void reset();
-}
+//   /// Reset Injected State
+//   void reset();
+// }

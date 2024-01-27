@@ -1,4 +1,4 @@
-part of 'manager.dart';
+import 'package:flutter/material.dart';
 
 class NavigatorInjected {
   final key = GlobalKey<NavigatorState>();
