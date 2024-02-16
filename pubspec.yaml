@@ -9,15 +9,15 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
+  states_rebuilder: ^6.3.0
+  path_provider: ^2.1.2
   hive_flutter: ^1.1.0
-  package_info_plus: ^5.0.1
+  package_info_plus: ^4.0.2
   freezed: ^2.4.6
   freezed_annotation: ^2.4.1
   build_runner: ^2.4.7
   json_annotation: ^4.8.1
   json_serializable: ^6.7.1
-  path_provider: ^2.1.2
-  states_rebuilder: ^6.3.0
 
 dev_dependencies:
   flutter_test:
