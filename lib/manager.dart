@@ -132,6 +132,11 @@ Future<void> _deletePersistentStates() => box.clear();
 
 /// Surface API
 abstract class RM<T> {
+  static Future<void> run(Widget app) async {
+    await initStorage;
+    runApp(app);
+  }
+
   static const deletePersistentStates = _deletePersistentStates;
   static const initStorage = _initStorage;
 
