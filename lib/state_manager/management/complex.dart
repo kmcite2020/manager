@@ -1,8 +1,3 @@
-// ignore_for_file: unused_field
-
-import 'package:flutter/material.dart';
-import 'package:manager/state_manager/ui/widgets.dart';
-
 import 'simple.dart';
 
 /// NOTIFIER - CUBIT
@@ -22,9 +17,4 @@ abstract class Complex<T> extends SimpleManager<T> {
 
   @override
   T get state => _base!;
-
-  Widget build(Widget Function(T state) builder) => ComplexUI(
-        builder: builder,
-        complex: this,
-      );
 }

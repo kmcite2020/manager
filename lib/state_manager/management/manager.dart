@@ -6,7 +6,6 @@ library manager;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:manager/state_manager/ui/widgets.dart';
 import 'simple.dart';
 
 /// Event State Management -> Just like Bloc package
@@ -40,10 +39,6 @@ class Manager<E, T> extends SimpleManager<T> {
 
   @visibleForTesting
   set state(T newState) => super.state = newState;
-  Widget build(Widget Function(T state) builder) => ManagerUI(
-        builder: builder,
-        manager: this,
-      );
 }
 
 typedef Emitter<T> = void Function(T newState);

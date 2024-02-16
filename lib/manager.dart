@@ -144,9 +144,7 @@ abstract class RM<T> {
   static persistent<T>(
     T defaultValue, {
     required FromJson<T> fromJson,
-  }) {
-    return;
-  }
+  }) {}
 
   /// Persist with Custom ToJson/FromJson
   static persistentCustom<T>(
