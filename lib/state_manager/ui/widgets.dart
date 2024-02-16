@@ -1,39 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:manager/state_manager/management/simple.dart';
-import '../../manager.dart';
+import 'package:states_rebuilder/states_rebuilder.dart';
 import '../management/complex.dart';
 import '../management/manager.dart';
 
-abstract class UI extends StatefulWidget {
-  const UI({super.key});
+typedef UI = ReactiveStatelessWidget;
 
-  @override
-  State<UI> createState() => ExtendedState();
-  Widget build(BuildContext context);
-}
-
-class ExtendedState extends State<UI> {
-  late Setstate _setState;
-  @override
-  void initState() {
-    super.initState();
-    _setState = setState;
-    setStates.add(_setState);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return widget.build(context);
-  }
-
-  @override
-  void dispose() {
-    setStates.remove(_setState);
-    super.dispose();
-  }
-}
-
-class ManagerUI<E, T> extends UI {
+class ManagerUI<E, T> extends StatelessWidget {
   final Widget Function(T state) builder;
   final Manager<E, T> manager;
 
@@ -45,7 +18,7 @@ class ManagerUI<E, T> extends UI {
   Widget build(BuildContext context) => builder(manager.state);
 }
 
-class ComplexUI<E, T> extends UI {
+class ComplexUI<E, T> extends StatelessWidget {
   final Widget Function(T state) builder;
   final Complex<T> complex;
 
@@ -57,9 +30,9 @@ class ComplexUI<E, T> extends UI {
   Widget build(BuildContext context) => builder(complex.state);
 }
 
-class SimpleUI<E, T> extends UI {
+class SimpleUI<E, T> extends StatelessWidget {
   final Widget Function(T state) builder;
-  final Simple<T> simple;
+  final SimpleManager<T> simple;
 
   const SimpleUI({
     required this.builder,

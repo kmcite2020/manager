@@ -1,16 +1,116 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-
+import 'package:states_rebuilder/scr/state_management/rm.dart';
+import 'dart:developer' as dev;
 import 'navigator_injected.dart';
 import 'state_manager/caching/cached.dart';
 import 'state_manager/management/complex.dart';
-import 'state_manager/caching/future_cached.dart';
 import 'state_manager/management/manager.dart';
 import 'state_manager/management/simple.dart';
-import 'dart:developer' as dev;
 
-import 'state_manager/caching/stream_cached.dart';
+abstract class Created<T> extends _Created<T> {
+  Created(T created) : super(creator: () => created);
+}
+
+abstract class CallableSupport<T> {
+  T call([T? updatedValue]);
+}
+
+mixin class PersistenceSupport<T> {
+  Persistor? persistor;
+
+  bool get persistable => persistor != null;
+}
+
+abstract class StateSupport<T> {
+  T get state;
+  set state(T updatedValue);
+}
+
+class _Created<T> extends ReactiveModelImp<T>
+    with PersistenceSupport<T>
+    implements CallableSupport<T>, StateSupport<T> {
+  _Created({
+    required super.creator,
+    super.initialState,
+    super.autoDisposeWhenNotUsed = false,
+    super.stateInterceptorGlobal,
+    this.onChange,
+    Persistor<T>? persistor,
+  }) {
+    persistor = persistor;
+  }
+  T call([T? newState]) {
+    if (newState != null) state = newState;
+    return state;
+  }
+
+  @override
+  T get state {
+    try {
+      if (persistable) {
+        final rawData = box.get(persistor?.key);
+        if (rawData != null) {
+          final decodedData = jsonDecode(rawData);
+          if (decodedData != null) {
+            final cachedData = persistor?.fromJson.call(decodedData);
+            if (cachedData != null) {
+              super.state = cachedData;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+    return super.state;
+  }
+
+  @override
+  set state(T value) {
+    if (persistable) {
+      final encodedData = jsonEncode(persistor?.toJson(value));
+      box.put(persistor?.key, encodedData);
+    }
+    onChange?.call(value);
+    super.state = value;
+  }
+
+  final void Function(T state)? onChange;
+}
+
+extension TypeExtensions<T> on T {
+  _Created<T> obs({
+    Persistor<T>? persistor,
+
+    /// For side effects
+    void Function(T state)? onChange,
+  }) =>
+      _Created<T>(
+        creator: () => this,
+        autoDisposeWhenNotUsed: false,
+        persistor: persistor,
+      );
+}
+
+extension CreatedExtensionsBool on _Created<bool> {
+  void toggle() {
+    state = !state;
+  }
+}
+
+extension CreatedExtensionsInt on _Created<int> {
+  void increment() => state++;
+  void decrement() => state--;
+}
+
+typedef Persistor<T> = ({
+  String key,
+  Map<String, dynamic> Function(T state) toJson,
+  T Function(Map<String, dynamic> json) fromJson,
+});
 
 final setStates = <Setstate>{};
 typedef Setstate = void Function(void Function());
@@ -77,16 +177,17 @@ abstract class RM<T> {
   static C complex<C extends Complex>(C complex) => complex;
 
   /// GLOBAL
-  static Simple<T> simple<T>(Creator<T> creator) => Simple(creator);
+  static SimpleManager<T> simple<T>(T Function() creator) =>
+      SimpleManager(creator);
 
   /// RIVERPOD LIKE CACHING
   static Cached<T> cached<T>(T cache) => Cached(cache);
 
   /// RIVERPOD LIKE CACHING FUTURE
-  static FutureCached<T> future<T>(FutureCreator<T> creator) =>
-      FutureCached(creator);
+  // static FutureCached<T> future<T>(FutureCreator<T> creator) =>
+  //     FutureCached(creator);
 
-  /// RIVERPOD LIKE CACHING STREAM
-  static StreamCached<T> stream<T>(StreamCreator<T> creator) =>
-      StreamCached(creator);
+  // /// RIVERPOD LIKE CACHING STREAM
+  // static StreamCached<T> stream<T>(StreamCreator<T> creator) =>
+  //     StreamCached(creator);
 }

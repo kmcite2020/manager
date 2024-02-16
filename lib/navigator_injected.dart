@@ -13,9 +13,11 @@ class NavigatorInjected {
     );
   }
 
-  void back<T extends Object?>([T? result]) {
-    return state.pop(result);
-  }
+  late final back = state.pop;
+
+  // void back<T extends Object?>([T? result]) {
+  //   return pop(result);
+  // }
 
   Future<T?> toDialog<T>(Dialog dialog) {
     return showDialog(

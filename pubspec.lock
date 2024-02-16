@@ -145,14 +145,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.18.0"
-  colornames:
-    dependency: "direct main"
-    description:
-      name: colornames
-      sha256: c42ee28edfc65391d7cdb40577c57390e1ea2ff78d73a9983a452a72dacfbdbc
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.0"
   convert:
     dependency: transitive
     description:
@@ -217,24 +209,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
-  flex_color_scheme:
-    dependency: "direct main"
-    description:
-      name: flex_color_scheme
-      sha256: "32914024a4f404d90ff449f58d279191675b28e7c08824046baf06826e99d984"
-      url: "https://pub.dev"
-    source: hosted
-    version: "7.3.1"
-  flex_seed_scheme:
-    dependency: transitive
-    description:
-      name: flex_seed_scheme
-      sha256: "29c12aba221eb8a368a119685371381f8035011d18de5ba277ad11d7dfb8657f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.4.0"
   flutter:
     dependency: "direct main"
+    description: flutter
+    source: sdk
+    version: "0.0.0"
+  flutter_localizations:
+    dependency: transitive
     description: flutter
     source: sdk
     version: "0.0.0"
@@ -328,6 +309,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.2"
+  intl:
+    dependency: transitive
+    description:
+      name: intl
+      sha256: "3bc132a9dbce73a7e4a21a17d06e1878839ffbf975568bc875c60537824b0c4d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.18.1"
   io:
     dependency: transitive
     description:
@@ -400,6 +389,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
+  navigation_builder:
+    dependency: transitive
+    description:
+      name: navigation_builder
+      sha256: "95e25150191d9cd4e4b86504f33cd9e786d1e6732edb2e3e635bbedc5ef0dea7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.3"
   package_config:
     dependency: transitive
     description:
@@ -573,6 +570,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.11.1"
+  states_rebuilder:
+    dependency: "direct main"
+    description:
+      name: states_rebuilder
+      sha256: bf1a5ab5c543acdefce35e60f482eb7ab592339484fe3266d147ee597f18dc92
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.3.0"
   stream_channel:
     dependency: transitive
     description:
@@ -687,4 +692,4 @@ packages:
     version: "3.1.2"
 sdks:
   dart: ">=3.2.3 <4.0.0"
-  flutter: ">=3.13.0"
+  flutter: ">=3.10.0"

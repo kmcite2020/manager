@@ -1,26 +1,24 @@
-import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:manager/extensions.dart';
 
 import 'manager.dart';
+import 'state_manager/ui/widgets.dart';
 
 final simpleCounterRM = RM.simple(() => 5);
 final borderRadiusRM = RM.simple(() => 8.0);
 final useMaterial3 = RM.simple(() => true);
 final paddingRM = RM.simple(() => 8.0);
 
-final periodicValuesRM = RM.stream(
-  () => Stream.periodic(
-    Duration(seconds: 1),
-    (x) {
-      return x;
-    },
-  ),
-);
+// final periodicValuesRM = RM.stream(
+//   () => Stream.periodic(
+//     Duration(seconds: 1),
+//     (x) => x,
+//   ),
+// );
 
 void main() => runApp(const App());
 
-class App extends StatelessWidget {
+class App extends UI {
   const App({super.key});
 
   @override
@@ -29,29 +27,13 @@ class App extends StatelessWidget {
       navigatorKey: RM.navigatorKey,
       debugShowCheckedModeBanner: false,
       themeAnimationDuration: Duration(milliseconds: 700),
-      theme: FlexThemeData.light(
-        subThemesData: FlexSubThemesData(
-          defaultRadius: borderRadiusRM(),
-        ),
-        useMaterial3: useMaterial3(),
-        lightIsWhite: true,
-      ),
-      darkTheme: FlexThemeData.dark(
-        subThemesData: FlexSubThemesData(
-          defaultRadius: borderRadiusRM(),
-        ),
-        useMaterial3: useMaterial3(),
-        darkIsTrueBlack: true,
-      ),
       home: HomePage(),
     );
   }
 }
 
-class HomePage extends StatelessWidget {
-  const HomePage({
-    super.key,
-  });
+class HomePage extends UI {
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +52,7 @@ class HomePage extends StatelessWidget {
             min: 5,
             max: 9,
             value: paddingRM(),
-            onChanged: paddingRM.setState,
+            onChanged: paddingRM.call,
           ).pad(),
           'BorderRadius'.text().center().pad(),
           Slider(
@@ -78,14 +60,13 @@ class HomePage extends StatelessWidget {
             min: 0,
             max: 30,
             value: borderRadiusRM(),
-            onChanged: borderRadiusRM.setState,
+            onChanged: borderRadiusRM.call,
           ).pad(),
           SwitchListTile(
             title: 'Use Material 3'.text().pad(),
             value: useMaterial3(),
-            onChanged: useMaterial3.setState,
+            onChanged: useMaterial3.call,
           ),
-          setStates.text().pad(),
         ],
       ),
     );

@@ -2,7 +2,7 @@
 A new Global State Manager.
 ## Bussiness Logic & State Management
 You can create Models that are reactive and modifiable and react to changes in other objects. Also UI of the app reacts to it.
-`UI` is an `abstract` class that is to be extended in order to let the User Interface of the build automatically in response to changes in Models.
+`UI` is an `abstract` class that is to be extended in order to let the User Interface of the app build automatically in response to changes in Models.
 The preferred method to create Models is using freezed models which support immutability.
 This is a simple class, we will use it to create Reactive Models. 
 ```dart
@@ -77,7 +77,7 @@ The specificity of `Global State Manager` is that it has practically no boilerpl
 Heavily inspired from States_Rebuilder library.
 ### Installing the package
 ```yaml
-  manager:
+manager:
     git: https://github.com/kmcite2020/manager
 ```
 ### Usage Example

@@ -10,7 +10,7 @@ import 'package:manager/state_manager/ui/widgets.dart';
 import 'simple.dart';
 
 /// Event State Management -> Just like Bloc package
-class Manager<E, T> extends Simple<T> {
+class Manager<E, T> extends SimpleManager<T> {
   T initialBase;
   Manager(this.initialBase) : super(() => initialBase);
   final handlers = <Handler>[];
@@ -39,7 +39,7 @@ class Manager<E, T> extends Simple<T> {
   }
 
   @visibleForTesting
-  set state(T newState) => value = newState;
+  set state(T newState) => super.state = newState;
   Widget build(Widget Function(T state) builder) => ManagerUI(
         builder: builder,
         manager: this,

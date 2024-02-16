@@ -1,21 +1,17 @@
 // ignore_for_file: unused_field
 
 import 'package:flutter/material.dart';
+import 'package:manager/state_manager/management/simple.dart';
 
-import '../management/readonly.dart';
-
-class Cached<T> extends Readonly<T> {
+class Cached<T> extends SimpleManager<T> {
   T? _base;
-  Cached(T base) : _base = base;
-
-  @override
-  T get data => _base!;
+  Cached(T base)
+      : _base = base,
+        super(() => base);
 
   @override
   T get state => _base!;
 
-  @override
-  T get value => _base!;
   Widget build(Widget Function(T state) builder) {
     return builder(state);
   }
