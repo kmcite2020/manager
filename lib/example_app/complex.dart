@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:manager/manager.dart';
 import 'package:manager/state_manager/management/complex.dart';
 
 /// create events
@@ -30,6 +31,11 @@ class CounterRM extends Complex<Event, State> {
   CounterRM()
       : super(
           State(0),
+          persistor: Persistor(
+            key: 'key',
+            toJson: (s) => {'count': s.count},
+            fromJson: (count) => State(count['count'] as int),
+          ),
         ) {
     on<AddEvent>(_addEvent);
     on<MinusEvent>(_minusEvent);

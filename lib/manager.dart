@@ -7,11 +7,16 @@ import 'package:manager/state_manager/ui/ui.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'navigator.dart';
 
-typedef Persistor<T> = ({
-  String key,
-  ToJson<T> toJson,
-  FromJson<T> fromJson,
-});
+class Persistor<T> {
+  final String key;
+  final ToJson<T> toJson;
+  final FromJson<T> fromJson;
+  Persistor({
+    required this.key,
+    required this.toJson,
+    required this.fromJson,
+  });
+}
 
 typedef ToJson<T> = Map<String, dynamic> Function(T s);
 typedef FromJson<T> = T Function(Map<String, dynamic> json);
@@ -41,12 +46,13 @@ class RM<T> with PersistorMixin<T> {
   }) {
     _persistor = persistor;
     if (persistable) {
-      final found = box.containsKey(persistor?.key);
-      if (found) {
-        throw Exception(
-            'Please provide a different key. current: ${persistor!.key}');
-      }
-      final fromJsonType = persistor!.fromJson.runtimeType;
+      persistor!;
+      // final found = box.containsKey(persistor.key);
+      // if (found) {
+      //   throw Exception(
+      //       'Please provide a different key. current: ${persistor.key}');
+      // }
+      final fromJsonType = persistor.fromJson.runtimeType;
       if (fromJsonType != FromJson<T>) {
         throw Exception(
             'Please give proper FromJson. current: ${fromJsonType}');
@@ -74,17 +80,17 @@ class RM<T> with PersistorMixin<T> {
       return t;
     }
 
-    return _;
+    return _state;
   }
 
-  T get _ {
+  T get _state {
     try {
       if (persistable) {
-        final persisted = box.get(_persistor?.key);
+        final persisted = box.get(_persistor?.key) as String?;
         if (persisted.isNotNull) {
-          final decoded = jsonDecode(persisted);
+          final decoded = jsonDecode(persisted!) as Map<String, dynamic>?;
           if (decoded.isNotNull) {
-            final data = _persistor?.fromJson.call(decoded);
+            final data = _persistor?.fromJson.call(decoded!);
             if (data.isNotNull) {
               _rm.state = data!;
             } else {
