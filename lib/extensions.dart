@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:manager/manager.dart';
 
-import 'main.dart';
+import 'example_app/example_app.dart';
 
 extension ObjectExtensions on Object? {
   Widget text({double? textScaleFactor}) {
@@ -9,6 +10,8 @@ extension ObjectExtensions on Object? {
       textScaler: TextScaler.linear(textScaleFactor ?? 1),
     );
   }
+
+  bool get isNotNull => this != null;
 }
 
 extension WidgetExtensions on Widget {
@@ -19,4 +22,13 @@ extension WidgetExtensions on Widget {
         child: this,
       );
   Widget center() => Center(child: this);
+}
+
+extension CreatedExtensionsBool on RM<bool> {
+  void toggle() => this(!this());
+}
+
+extension CreatedExtensionsInt on RM<int> {
+  void increment() => this(this() + 1);
+  void decrement() => this(this() - 1);
 }
