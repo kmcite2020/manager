@@ -37,11 +37,11 @@ class CounterRM extends Complex<Event, State> {
   }
 
   FutureOr<void> _addEvent(AddEvent event, Emitter<State> setState) {
-    setState(State(call().count + event.add));
+    setState(State(state.count + event.add));
   }
 
   FutureOr<void> _minusEvent(MinusEvent event, Emitter<State> setState) {
-    setState(State(call().count - event.minus));
+    setState(State(state.count - event.minus));
   }
 
   FutureOr<void> _resetEvent(ResetEvent event, Emitter<State> setState) {

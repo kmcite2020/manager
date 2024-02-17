@@ -1,25 +1,25 @@
-// ignore_for_file: unused_field
-
-library manager;
-
-/// GLOBAL SETTINGS
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import '../../manager.dart';
 
+typedef Bloc<Event, State> = Complex<Event, State>;
+
 abstract class Complex<Event, State> extends RM<State> {
-  Complex(State value) : super.create(() => value);
-  final handlers = <Handler>[];
+  Complex(
+    State value, {
+    Persistor<State>? persistor,
+  }) : super.create(() => value, persistor: persistor);
+  final _handlers = <Handler>[];
   void on<Event>(
     EventRegistrar<Event, State> handlerFunction,
   ) {
-    final registered = handlers.any((handler) => handler.$2 == Event);
+    final registered = _handlers.any((handler) => handler.$2 == Event);
     assert(
       !registered,
       'on<$Event> was called multiple times.',
     );
-    handlers.add(
+    _handlers.add(
       (
         (e) => e is Event,
         Event,
@@ -30,10 +30,14 @@ abstract class Complex<Event, State> extends RM<State> {
   }
 
   void add(Event event) {
-    final index = handlers.indexWhere((e) => e.$1(event));
-    handlers[index].$3(event, ((newState) => state = newState))
+    final index = _handlers.indexWhere((e) => e.$1(event));
+    _handlers[index].$3(event, ((newState) => state = newState))
         as FutureOr<void>;
   }
+
+  @visibleForTesting
+  @override
+  State call([State? t]) => super(t);
 
   State get state => call();
   @visibleForTesting

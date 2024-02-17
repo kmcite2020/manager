@@ -59,13 +59,14 @@ class ManagerExampleUI extends UI {
                   },
             child: 'Minus Counter by $integerToAddOrMinus'.text(),
           ).pad(),
-          ElevatedButton(
+          FloatingActionButton.extended(
             onPressed: counterStateRM().count == 0
                 ? null
                 : () {
                     counterStateRM.resetCounter();
                   },
-            child: 'Reset Counter'.text(),
+            label: 'Reset Counter'.text(),
+            disabledElevation: 0,
           ).pad(),
         ],
       ),

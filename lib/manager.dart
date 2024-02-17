@@ -5,7 +5,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:manager/extensions.dart';
 import 'package:manager/state_manager/ui/ui.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-// import 'dart:developer' as dev;
 import 'navigator.dart';
 
 typedef Persistor<T> = ({
@@ -14,12 +13,8 @@ typedef Persistor<T> = ({
   FromJson<T> fromJson,
 });
 
-typedef ToJson<T> = Map<String, dynamic> Function(T s); // toJson Signature
+typedef ToJson<T> = Map<String, dynamic> Function(T s);
 typedef FromJson<T> = T Function(Map<String, dynamic> json);
-// typedef Reader<T> = T Function(String key);
-// typedef Writer<T> = Future<void> Function(String key, T value);
-// ToJson toJson = (s) => s.toJson(); // toJson Impl
-// void inform(String message) => dev.log(message); // Logger
 
 Future<void> _initStorage() async {
   await Hive.initFlutter();
