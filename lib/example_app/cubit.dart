@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:manager/example_app/example_app.dart';
 import 'package:manager/extensions.dart';
-import 'package:manager/state_manager/management/manager.dart';
+import 'package:manager/state_manager/management/cubit.dart';
 import 'package:manager/state_manager/ui/ui.dart';
 
 class CounterState {
@@ -10,10 +10,8 @@ class CounterState {
 }
 
 class CounterStateRM extends Cubit<CounterState> {
-  CounterStateRM()
-      : super(
-          CounterState(0),
-        );
+  @override
+  CounterState get initialState => CounterState(0);
   void incrementCounter([int by = 1]) {
     call(CounterState(call().count + by));
   }

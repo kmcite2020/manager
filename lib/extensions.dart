@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:manager/manager.dart';
 
 import 'example_app/example_app.dart';
 
-extension ObjectExtensions on Object? {
+extension ObjectExtensions on dynamic {
   Widget text({double? textScaleFactor}) {
     return Text(
       toString(),
@@ -12,6 +11,7 @@ extension ObjectExtensions on Object? {
   }
 
   bool get isNotNull => this != null;
+  bool get isNull => this == null;
 }
 
 extension WidgetExtensions on Widget {

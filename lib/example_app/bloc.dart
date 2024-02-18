@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:manager/manager.dart';
-import 'package:manager/state_manager/management/complex.dart';
+import 'package:manager/state_manager/management/bloc.dart';
 
 /// create events
 class Event {}
@@ -28,15 +28,18 @@ class State {
 
 /// create complex
 class CounterRM extends Bloc<Event, State> {
-  CounterRM()
-      : super(
-          State(0),
-          persistor: Persistor(
-            key: 'key',
-            toJson: (s) => {'count': s.count},
-            fromJson: (count) => State(count['count'] as int),
-          ),
-        ) {
+  @override
+  State get initialState => State(0);
+  @override
+  Persistor<State>? get persistor {
+    return Persistor(
+      key: 'key',
+      toJson: (s) => {'count': s.count},
+      fromJson: (count) => State(count['count'] as int),
+    );
+  }
+
+  CounterRM() {
     register<AddEvent>(_addEvent);
     register<MinusEvent>(_minusEvent);
     register<ResetEvent>(_resetEvent);
@@ -57,3 +60,25 @@ class CounterRM extends Bloc<Event, State> {
 
 /// create an instance
 final counterRM = CounterRM();
+
+class Calculator {
+  int sum(int a, int b) {
+    return a + b;
+  }
+
+  minus() {}
+}
+
+final calculator = Calculator();
+
+final count = RM(
+  () => 0,
+);
+
+void main(List<String> args) {
+  inc();
+}
+
+void inc() {
+  count.call(count() + 1);
+}

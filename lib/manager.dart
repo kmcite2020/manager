@@ -1,11 +1,14 @@
-import 'dart:convert';
+import 'manager.dart';
+export 'package:manager/example_app/bloc.dart';
+export 'package:manager/example_app/cubit.dart';
 
-import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:manager/extensions.dart';
-import 'package:manager/state_manager/ui/ui.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'navigator.dart';
+export 'dart:convert';
+export 'package:flutter/material.dart' hide State;
+export 'package:hive_flutter/hive_flutter.dart';
+export 'package:manager/extensions.dart';
+export 'package:manager/state_manager/ui/ui.dart';
+export 'package:package_info_plus/package_info_plus.dart';
+export 'navigator.dart';
 
 class Persistor<T> {
   final String key;
@@ -28,29 +31,22 @@ Future<void> _initStorage() async {
 }
 
 /// Surface API
-class RM<T> with PersistorMixin<T> {
+class RM<T> {
   late final RMI<T> _rm;
-  factory RM(
-    T value, {
-    Persistor<T>? persistor,
-  }) =>
-      RM.create(
-        () => value,
-        initialState: value,
-        persistor: persistor,
-      );
-  RM.create(
+  Persistor<T>? _persistor;
+  bool get persistable => _persistor.isNotNull;
+
+  RM(
     T Function() creator, {
     T? initialState,
     Persistor<T>? persistor,
-  }) {
-    _persistor = persistor;
+  }) : _persistor = persistor {
     if (persistable) {
       persistor!;
       final fromJsonType = persistor.fromJson.runtimeType;
       if (fromJsonType != FromJson<T>) {
         throw Exception(
-            'Please give proper FromJson. current: ${fromJsonType}');
+            'Please give proper FromJson. current: ${fromJsonType} for type: $T');
       }
       final toJsonType = persistor.toJson.runtimeType;
       if (toJsonType != ToJson<T>) {
@@ -107,11 +103,6 @@ class RM<T> with PersistorMixin<T> {
   static final toPage = navigator.toPage;
 }
 
-mixin PersistorMixin<T> {
-  Persistor<T>? _persistor;
-  bool get persistable => _persistor.isNotNull;
-}
-
 mixin ReplayMixin<T> {
   final List<T> history = [];
   bool get replayable => history.isNotEmpty;
@@ -120,9 +111,11 @@ mixin ReplayMixin<T> {
 }
 
 late Box box; // Persistence Box
-void _runApp(Widget app) async {
+
+void _runApp(Widget home, [Function? function]) async {
+  function?.call();
   await _initStorage();
-  runApp(app);
+  runApp(home);
 }
 
 void _clearStorage() async => await box.clear();
