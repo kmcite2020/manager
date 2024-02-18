@@ -1,10 +1,9 @@
 import '../../manager.dart';
 
-typedef Notifier<State> = Manager<State>;
-typedef Cubit<State> = Manager<State>;
+typedef Notifier<State> = Cubit<State>;
 
-abstract class Manager<State> extends RM<State> {
-  Manager(State state, {Persistor<State>? persistor})
+abstract class Cubit<State> extends RM<State> {
+  Cubit(State state, {Persistor<State>? persistor})
       : super.create(
           () => state,
           persistor: persistor,

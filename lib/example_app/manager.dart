@@ -9,7 +9,7 @@ class CounterState {
   CounterState(this.count);
 }
 
-class CounterStateRM extends Manager<CounterState> {
+class CounterStateRM extends Cubit<CounterState> {
   CounterStateRM()
       : super(
           CounterState(0),

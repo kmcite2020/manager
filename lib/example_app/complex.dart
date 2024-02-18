@@ -27,7 +27,7 @@ class State {
 }
 
 /// create complex
-class CounterRM extends Complex<Event, State> {
+class CounterRM extends Bloc<Event, State> {
   CounterRM()
       : super(
           State(0),
@@ -37,9 +37,9 @@ class CounterRM extends Complex<Event, State> {
             fromJson: (count) => State(count['count'] as int),
           ),
         ) {
-    on<AddEvent>(_addEvent);
-    on<MinusEvent>(_minusEvent);
-    on<ResetEvent>(_resetEvent);
+    register<AddEvent>(_addEvent);
+    register<MinusEvent>(_minusEvent);
+    register<ResetEvent>(_resetEvent);
   }
 
   FutureOr<void> _addEvent(AddEvent event, Emitter<State> setState) {

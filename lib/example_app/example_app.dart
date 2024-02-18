@@ -98,7 +98,7 @@ class HomePage extends UI {
             onPressed: integerToAddOrMinus == null
                 ? null
                 : () {
-                    counterRM.add(AddEvent(integerToAddOrMinus!));
+                    counterRM(AddEvent(integerToAddOrMinus!));
                   },
             child: 'Add Event'.text(),
           ).pad(),
@@ -106,13 +106,13 @@ class HomePage extends UI {
             onPressed: integerToAddOrMinus == null
                 ? null
                 : () {
-                    counterRM.add(MinusEvent(integerToAddOrMinus!));
+                    counterRM(MinusEvent(integerToAddOrMinus!));
                   },
             child: 'Minus Event'.text(),
           ).pad(),
           ElevatedButton(
             onPressed: () {
-              counterRM.add(ResetEvent());
+              counterRM(ResetEvent());
             },
             child: 'Reset Event'.text(),
           ).pad(),

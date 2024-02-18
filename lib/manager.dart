@@ -47,11 +47,6 @@ class RM<T> with PersistorMixin<T> {
     _persistor = persistor;
     if (persistable) {
       persistor!;
-      // final found = box.containsKey(persistor.key);
-      // if (found) {
-      //   throw Exception(
-      //       'Please provide a different key. current: ${persistor.key}');
-      // }
       final fromJsonType = persistor.fromJson.runtimeType;
       if (fromJsonType != FromJson<T>) {
         throw Exception(
