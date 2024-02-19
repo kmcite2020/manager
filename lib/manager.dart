@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'manager.dart';
 export 'package:manager/example_app/bloc.dart';
 export 'package:manager/example_app/cubit.dart';
@@ -104,10 +106,16 @@ class RM<T> {
 }
 
 mixin ReplayMixin<T> {
-  final List<T> history = [];
-  bool get replayable => history.isNotEmpty;
-  void undo();
-  void redo();
+  final Queue<T> redos = Queue<T>();
+  final Queue<T> undos = Queue<T>();
+  bool get replayable => undos.isNotEmpty;
+  void undo() {
+    T state = undos.removeFirst();
+  }
+
+  void redo() {
+    T state = redos.removeFirst();
+  }
 }
 
 late Box box; // Persistence Box
