@@ -1,4 +1,4 @@
-part of 'manager.dart';
+part of 'sparkle_builder.dart';
 
 extension DynamicExtensions on dynamic {
   Text text({double textScaleFactor = 1}) {
