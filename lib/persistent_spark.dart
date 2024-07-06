@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import 'package:manager/sparkle_builder.dart';
+import 'package:manager/manager.dart';
 
 late Box storage;
 

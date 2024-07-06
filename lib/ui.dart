@@ -1,4 +1,4 @@
-part of 'sparkle_builder.dart';
+part of 'manager.dart';
 
 abstract class TopUI extends UI {
   Widget get navigation;

@@ -1,72 +1,46 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:async';
+part of 'manager.dart';
 
-import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
+class SparkleBuilder<T> {
+  // observable to listen the events from other observable localled in a RxBuilder Widget
+  ISparkle<T?> subject = Sparkle(null);
 
-import 'package:manager/persistent_spark.dart';
+  /// used to create a tmp RxNotifier since a RxBuilder Widget
+  static SparkleBuilder? proxy;
 
-part 'ui.dart';
-part 'extensions.dart';
-part 'notifier.dart';
+  /// store the subscriptions for one observable
+  final Map<ISparkle, List<StreamSubscription>> _subscriptions = {};
+  Map<ISparkle, List<StreamSubscription>> get subscriptions => _subscriptions;
 
-class Sparkle<T> extends ISparkle<T> {
-  Sparkle(this.initialState);
-  @override
-  final T initialState;
-}
+  // used by the RxBuilder to check if the builder method contains an observable
+  bool get canUpdate => subscriptions.isNotEmpty;
 
-abstract class ISparkle<T> {
-  bool get autoDispose => true;
-  T get initialState;
+  void addListener(ISparkle<T> rx) {
+    // if the current observable is not in the subscriptions
+    if (!_subscriptions.containsKey(rx)) {
+      // create a Subscription for this observable
+      final StreamSubscription subs =
+          rx.controller.stream.listen(subject.controller.add);
 
-  late T _value = initialState;
-
-  StreamController<T>? _controller;
-
-  StreamController<T> get controller {
-    _controller ??= StreamController.broadcast();
-    return _controller!;
-  }
-
-  bool get hasListeners => controller.hasListener;
-
-  void set(T newValue) {
-    if (_value != newValue) {
-      _value = newValue;
-      controller.sink.add(_value);
+      /// get the subscriptions for this Rx and add the new subscription
+      final listSubscriptions = _subscriptions[rx] ?? [];
+      listSubscriptions.add(subs);
+      _subscriptions[rx] = listSubscriptions;
     }
   }
 
-  T get get {
-    if (SparkleBuilder.proxy != null) {
-      SparkleBuilder.proxy!.addListener(this);
+  /// used by the RxBuilder to listen the changes in a observable
+  StreamSubscription<T?> listen(void Function(T?) _) {
+    return subject.controller.stream.listen(_);
+  }
+
+  /// Closes the subscriptions for this Rx, releasing the resources.
+  FutureOr<void> close() async {
+    for (final e in _subscriptions.values) {
+      for (final subs in e) {
+        await subs.cancel();
+      }
     }
-    return _value;
-  }
-
-  void apply(SparkleModifier<T> spark) {
-    spark(get, set);
-  }
-
-  T newCallable([T? newState]) {
-    return get;
-  }
-
-  T call([T? _newState]) {
-    if (_newState != null) {
-      set(_newState);
-    }
-    return get;
-  }
-
-  FutureOr<void> dispose() {
-    _controller?.close();
-  }
-
-  FutureOr<void> close() {
-    if (autoDispose) _controller?.close();
+    _subscriptions.clear();
+    return subject.close();
   }
 }
-
-typedef SparkleModifier<T> = void Function(T get, ValueSetter<T> set);

@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import 'package:manager/persistent_spark.dart';
-import 'package:manager/sparkle_builder.dart';
+import 'package:manager/manager.dart';
 
 void main() => appRunner(App());
 
