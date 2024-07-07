@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'dart:convert';
 
-import 'package:manager/persistent_spark.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 export 'package:manager/manager.dart';
-
+part 'persistent_spark.dart';
 part 'ui.dart';
 part 'extensions.dart';
 part 'sparkle_builder.dart';

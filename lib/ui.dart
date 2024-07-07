@@ -23,14 +23,11 @@ void appRunner(TopUI app) => PersistentSparkle.init.then(
     );
 
 abstract class UI extends StatefulWidget {
-  // ignore: public_member_api_docs
   const UI({Key? key}) : super(key: key);
 
-  /// the build function
   Widget build(BuildContext context);
 
   @override
-  // ignore: library_private_types_in_public_api
   _UIState createState() => _UIState();
 }
 
