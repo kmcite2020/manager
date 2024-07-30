@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import 'main.dart';
+
 export 'package:manager/manager.dart';
 part 'persistent_spark.dart';
 part 'ui.dart';

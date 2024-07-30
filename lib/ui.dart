@@ -33,11 +33,11 @@ abstract class UI extends StatefulWidget {
 
 class _UIState extends State<UI> {
   _UIState() {
-    _observer = SparkleBuilder();
+    // _observer = SparkleBuilder();
   }
 
-  SparkleBuilder? _observer;
-  late StreamSubscription _subscription;
+  RM? _instance;
+  StreamSubscription? _subscription;
   bool _afterFirstLayout = false;
 
   @override
@@ -47,16 +47,15 @@ class _UIState extends State<UI> {
       _afterFirstLayout = true;
     });
     // listen the observable events
-    _subscription = _observer!.listen(_rebuild);
+    _subscription = _instance?.listen(_rebuild);
   }
 
   @override
   void dispose() {
     _afterFirstLayout = false;
-    // remove the subsciptions when the widget is destroyed
-    _subscription.cancel();
-    if (_observer?.canUpdate ?? false) {
-      _observer?.close();
+    _subscription?.cancel();
+    if (_instance?.controller.hasListener ?? false) {
+      _instance?.dispose();
     }
 
     super.dispose();
@@ -70,9 +69,9 @@ class _UIState extends State<UI> {
 
   @override
   Widget build(BuildContext context) {
-    final observer = SparkleBuilder.proxy;
+    final observer = RM.instance;
 
-    SparkleBuilder.proxy = _observer;
+    RM.instance = _instance;
     final result = widget.build(context);
     // if (!_observer!.canUpdate) {
     //   throw FlutterError(
@@ -81,7 +80,41 @@ class _UIState extends State<UI> {
     //   ''',
     //   );
     // }
-    SparkleBuilder.proxy = observer;
+    RM.instance = observer;
     return result;
+  }
+}
+
+class Spark<T> {
+  final T Function() creator;
+  final void Function(T prev, T next) beforeMutation;
+  final void Function() afterMutation;
+  final StreamController<T> controller = StreamController.broadcast();
+
+  late T spark = creator();
+  Object? error;
+  bool isLoading = false;
+
+  Spark(
+    this.creator,
+    this.beforeMutation,
+    this.afterMutation,
+  ) {
+    controller.add(spark);
+  }
+
+  bool get loading => isLoading;
+  T get state => spark;
+
+  set state(T newState) {
+    try {
+      isLoading = true;
+      beforeMutation(state, newState);
+      controller.add(newState);
+      afterMutation();
+      isLoading = false;
+    } catch (e) {
+      error = e as Exception;
+    }
   }
 }
