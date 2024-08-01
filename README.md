@@ -1,6 +1,7 @@
 # manager
-A new Global State Manager.
+a redux based state management solution
 ## Bussiness Logic & State Management
+It is based on the principles of single source of truth. You create a store [Store<T>]. T conforms to the single state type. You create reducers for changing the store's state. 
 You can create Models that are reactive and modifiable and react to changes in other objects. Also UI of the app reacts to it.
 `UI` is an `abstract` class that is to be extended in order to let the User Interface of the app build automatically in response to changes in Models.
 The preferred method to create Models is using freezed models which support immutability.
@@ -19,10 +20,6 @@ final modelRM = RM.create(()=> Model(0));
 int get counter => modelRM()();
 /// Use this setter in callbacks to modify the Injected State.
 set counter(int value)=> modelRM(Model(value));
-```
-<!-- <p align="center">
-    <image src="https://github.com/GIfatahTH/states_rebuilder/raw/master/assets/Logo-Black.png" width="570" alt=''/>
-</p> -->
 A new Global State Manager.
 
 ## Why Global State Manager?

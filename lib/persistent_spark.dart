@@ -3,7 +3,7 @@ part of 'manager.dart';
 
 late Box storage;
 
-class PersistentSparkle<T> extends ISparkle<T> {
+class PersistentSparkle<T> {
   static Future<void> get init async {
     await Hive.initFlutter();
     final app = await PackageInfo.fromPlatform();
@@ -39,7 +39,7 @@ class PersistentSparkle<T> extends ISparkle<T> {
 
   void write() async {
     try {
-      final resultOfGet = (get as dynamic).toJson();
+      final resultOfGet = (0 as dynamic).toJson();
       if (resultOfGet is Map) {
         await storage.put(
           key,
@@ -56,12 +56,10 @@ class PersistentSparkle<T> extends ISparkle<T> {
     }
   }
 
-  @override
   void set(T newValue) {
-    super.set(newValue);
+    set(newValue);
     write();
   }
 
-  @override
   final initialState;
 }

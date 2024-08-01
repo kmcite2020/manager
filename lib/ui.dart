@@ -1,120 +1,75 @@
 part of 'manager.dart';
 
-abstract class TopUI extends UI {
-  Widget get navigation;
-  ThemeData get theme => ThemeData.light();
-  ThemeData get darkTheme => ThemeData.dark();
+typedef NextDispatcher(dynamic action);
+typedef T Reducer<T>(T state, dynamic action);
+typedef ReduxUI<T> = _UI<T>;
+
+abstract class TopUI<T> extends StatelessWidget {
+  const TopUI({super.key});
+
+  Store<T> get store;
+  Widget home(BuildContext context);
+
   ThemeMode get themeMode => ThemeMode.system;
+  ThemeData get theme => ThemeData();
+  ThemeData get darkTheme => ThemeData.dark();
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: navigation,
-      theme: theme,
-      darkTheme: darkTheme,
-      themeMode: themeMode,
+  Widget build(context) {
+    return StoreProvider(
+      store: store,
+      child: StoreBuilder<T>(
+        onInit: (store) {
+          log('$this');
+        },
+        builder: (context, store) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: home(context),
+            themeMode: themeMode,
+            theme: theme,
+            darkTheme: darkTheme,
+          );
+        },
+      ),
     );
   }
 }
 
-void appRunner(TopUI app) => PersistentSparkle.init.then(
-      (value) => runApp(app),
-    );
-
-abstract class UI extends StatefulWidget {
-  const UI({Key? key}) : super(key: key);
-
+abstract class _UI<S> extends StatefulWidget {
+  static Store<S> _identity<S>(Store<S> store) => store;
+  final bool rebuildOnChange;
+  final OnInit<S>? onInit;
+  final OnDispose<S>? onDispose;
+  final OnWillChange<Store<S>>? onWillChange;
+  final OnDidChange<Store<S>>? onDidChange;
+  final OnInitialBuild<Store<S>>? onInitialBuild;
+  const _UI({
+    Key? key,
+    this.onInit,
+    this.onDispose,
+    this.rebuildOnChange = true,
+    this.onWillChange,
+    this.onDidChange,
+    this.onInitialBuild,
+  }) : super(key: key);
   Widget build(BuildContext context);
-
   @override
-  _UIState createState() => _UIState();
+  State<_UI<S>> createState() => _UIState<S>();
 }
 
-class _UIState extends State<UI> {
-  _UIState() {
-    // _observer = SparkleBuilder();
-  }
-
-  RM? _instance;
-  StreamSubscription? _subscription;
-  bool _afterFirstLayout = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.endOfFrame.then((_) {
-      _afterFirstLayout = true;
-    });
-    // listen the observable events
-    _subscription = _instance?.listen(_rebuild);
-  }
-
-  @override
-  void dispose() {
-    _afterFirstLayout = false;
-    _subscription?.cancel();
-    if (_instance?.controller.hasListener ?? false) {
-      _instance?.dispose();
-    }
-
-    super.dispose();
-  }
-
-  void _rebuild(_) {
-    if (_afterFirstLayout && mounted) {
-      setState(() {});
-    }
-  }
-
+class _UIState<S> extends State<_UI<S>> {
   @override
   Widget build(BuildContext context) {
-    final observer = RM.instance;
-
-    RM.instance = _instance;
-    final result = widget.build(context);
-    // if (!_observer!.canUpdate) {
-    //   throw FlutterError(
-    //     '''
-    //   If you are seeing this error, you probably did not insert any observable variables into RxBuilder
-    //   ''',
-    //   );
-    // }
-    RM.instance = observer;
-    return result;
-  }
-}
-
-class Spark<T> {
-  final T Function() creator;
-  final void Function(T prev, T next) beforeMutation;
-  final void Function() afterMutation;
-  final StreamController<T> controller = StreamController.broadcast();
-
-  late T spark = creator();
-  Object? error;
-  bool isLoading = false;
-
-  Spark(
-    this.creator,
-    this.beforeMutation,
-    this.afterMutation,
-  ) {
-    controller.add(spark);
-  }
-
-  bool get loading => isLoading;
-  T get state => spark;
-
-  set state(T newState) {
-    try {
-      isLoading = true;
-      beforeMutation(state, newState);
-      controller.add(newState);
-      afterMutation();
-      isLoading = false;
-    } catch (e) {
-      error = e as Exception;
-    }
+    return StoreConnector<S, Store<S>>(
+      builder: (context, store) => widget.build(context),
+      converter: _UI._identity,
+      rebuildOnChange: widget.rebuildOnChange,
+      onInit: widget.onInit,
+      onDispose: widget.onDispose,
+      onWillChange: widget.onWillChange,
+      onDidChange: widget.onDidChange,
+      onInitialBuild: widget.onInitialBuild,
+    );
   }
 }
