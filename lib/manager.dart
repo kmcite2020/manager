@@ -18,7 +18,8 @@ typedef Middleware<S>(Store<S> store, action, NextDispatcher next);
 
 class Store<S> {
   Reducer<S> reducer;
-  late final StreamController<S> _changeController = StreamController.broadcast(sync: sync);
+  late final StreamController<S> _changeController =
+      StreamController.broadcast(sync: sync);
   late S initialState;
   late final List<NextDispatcher> _dispatchers;
   final bool sync;
@@ -51,7 +52,7 @@ class Store<S> {
     NextDispatcher dispatcher,
   ) {
     final dispatchers = <NextDispatcher>[]..add(dispatcher);
-    for (var nextMiddleware in middlewares.reversed) {
+    for (final nextMiddleware in middlewares.reversed) {
       final next = dispatchers.last;
       dispatchers.add(
         (dynamic action) => nextMiddleware(this, action, next),
