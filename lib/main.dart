@@ -14,7 +14,7 @@ class App extends TopUI {
       floatingActionButton: ButtonBar(
         children: [
           FloatingActionButton(
-            onPressed: () => _store.apply(Increment()),
+            onPressed: () => _store.apply(DoubleInc()),
           ),
           FloatingActionButton(
             onPressed: () => _store.apply(Decrement()),
@@ -31,10 +31,17 @@ final _store = Store(0);
 
 class Decrement extends Act<int> {
   @override
-  act(state, _, __) => state - 1;
+  reduce(state) => state - 1;
 }
 
 class Increment extends Act<int> {
   @override
-  act(state, _, __) => state + 1;
+  reduce(state) => state + 1;
+}
+
+class DoubleInc extends Act<int> {
+  @override
+  int reduce(int state) {
+    return 0;
+  }
 }

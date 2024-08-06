@@ -1,15 +1,15 @@
 part of 'manager.dart';
 
 class StoreProvider<S> extends InheritedWidget {
-  final Store<S> _store;
+  final Spark<S> _store;
   const StoreProvider({
     Key? key,
-    required Store<S> store,
+    required Spark<S> store,
     required Widget child,
   })  : _store = store,
         super(key: key, child: child);
 
-  static Store<S> of<S>(BuildContext context, {bool listen = true}) {
+  static Spark<S> of<S>(BuildContext context, {bool listen = true}) {
     final provider = switch (listen) {
       true => context.dependOnInheritedWidgetOfExactType<StoreProvider<S>>(),
       false => context.getElementForInheritedWidgetOfExactType<StoreProvider<S>>()?.widget,
@@ -25,9 +25,9 @@ class StoreProvider<S> extends InheritedWidget {
 }
 
 typedef Widget ModelBuilder<Model>(BuildContext context, Model model);
-typedef Model StoreConverter<S, Model>(Store<S> store);
-typedef void OnInit<S>(Store<S> store);
-typedef void OnDispose<S>(Store<S> store);
+typedef Model StoreConverter<S, Model>(Spark<S> store);
+typedef void OnInit<S>(Spark<S> store);
+typedef void OnDispose<S>(Spark<S> store);
 typedef bool IgnoreChangeTest<S>(S state);
 typedef void OnWillChange<Model>(Model? prev, Model next);
 typedef void OnDidChange<Model>(Model? prev, Model net);
@@ -77,14 +77,14 @@ class StoreConnector<S, T> extends StatelessWidget {
 }
 
 class StoreBuilder<S> extends StatelessWidget {
-  static Store<S> _identity<S>(Store<S> store) => store;
-  final ModelBuilder<Store<S>> builder;
+  static Spark<S> _identity<S>(Spark<S> store) => store;
+  final ModelBuilder<Spark<S>> builder;
   final bool rebuildOnChange;
   final OnInit<S>? onInit;
   final OnDispose<S>? onDispose;
-  final OnWillChange<Store<S>>? onWillChange;
-  final OnDidChange<Store<S>>? onDidChange;
-  final OnInitialBuild<Store<S>>? onInitialBuild;
+  final OnWillChange<Spark<S>>? onWillChange;
+  final OnDidChange<Spark<S>>? onDidChange;
+  final OnInitialBuild<Spark<S>>? onInitialBuild;
   const StoreBuilder({
     Key? key,
     required this.builder,
@@ -98,7 +98,7 @@ class StoreBuilder<S> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<S, Store<S>>(
+    return StoreConnector<S, Spark<S>>(
       builder: builder,
       converter: _identity,
       rebuildOnChange: rebuildOnChange,
@@ -114,7 +114,7 @@ class StoreBuilder<S> extends StatelessWidget {
 class _StoreStreamListener<S, T> extends StatefulWidget {
   final ModelBuilder<T> builder;
   final StoreConverter<S, T> converter;
-  final Store<S> store;
+  final Spark<S> store;
   final bool rebuildOnChange;
   final bool distinct;
   final OnInit<S>? onInit;
@@ -227,7 +227,7 @@ class _StoreStreamListenerState<S, T> extends State<_StoreStreamListener<S, T>> 
   }
 
   void _createStream() {
-    _stream = widget.store.onChange
+    _stream = widget.store.stream
         .where(_ignoreChange)
         .map((_) => widget.converter(widget.store))
         .transform(

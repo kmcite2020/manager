@@ -1,3 +1,5 @@
+// ignore_for_file: unused_field
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -18,38 +20,71 @@ typedef Apply<S> = void Function(Act<S>);
 abstract class Act<S> {
   void before() {}
   void after() {}
-  S act(S state, Store<S> store, Apply<S> apply);
+  S reduce(S state);
 }
 
-class Store<S> {
-  late S _state;
+class Sparkle<S> extends Spark<S> {
+  final initialState;
+  Sparkle(this.initialState);
+  S call([S? newState]) {
+    if (newState != null) {
+      _state = newState;
+    }
+    return _state;
+  }
+}
+
+abstract class Spark<S> {
+  S get initialState;
+  late S _state = initialState;
+  late final _changeController = StreamController<S>.broadcast();
+
+  Stream<S> get stream => _changeController.stream;
+
+  S get state => _state;
+  Future teardown() => _changeController.close();
+}
+
+class Store<S> extends Spark<S> {
+  S get state => _state;
+  final initialState;
+  late final _changeController = StreamController<S>.broadcast(sync: sync);
   final bool sync;
   final bool distinct;
-
-  late final _changeController = StreamController<S>.broadcast(sync: sync);
-  Store(
-    this._state, {
-    this.sync = false,
-    this.distinct = false,
-  });
-  Stream<S> get onChange => _changeController.stream;
-  S get state => _state;
-  void apply(Act action) {
-    final state = action.act(_state, this, apply);
+  final List<Middleware<S>> middlewares;
+  void apply(Act<S> action) {
+    applyMiddlewares(action, 0);
+    final state = action.reduce(_state);
     if (distinct && state == _state) return;
     _state = state;
     _changeController.add(state);
   }
 
-  S call([S? newState]) {
-    if (newState != null) {
-      _state = newState;
+  void applyMiddlewares(Act<S> act, int index) {
+    switch (index < middlewares.length) {
+      case true:
+        middlewares[index].apply(
+          this,
+          act,
+          (nextAction) => applyMiddlewares(nextAction, index + 1),
+        );
+      case false:
     }
-    return state;
   }
 
-  Future teardown() => _changeController.close();
+  Store(
+    this.initialState, {
+    this.sync = false,
+    this.distinct = false,
+    this.middlewares = const [],
+  });
 }
+
+abstract class Middleware<S> {
+  void apply(Store<S> store, Act<S> act, NextDispatcher<S> next);
+}
+
+typedef void NextDispatcher<S>(Act<S> act);
 
 
 // class Store<S> {
