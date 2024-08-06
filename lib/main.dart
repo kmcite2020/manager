@@ -7,30 +7,34 @@ void main() {
 
 class App extends TopUI {
   @override
-  Widget home(BuildContext context) {
+  Widget home(context) {
     return Scaffold(
       appBar: AppBar(),
-      body: _store.state.text(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _store.dispatch(Increment()),
+      body: _store.state.text().center(),
+      floatingActionButton: ButtonBar(
+        children: [
+          FloatingActionButton(
+            onPressed: () => _store.apply(Increment()),
+          ),
+          FloatingActionButton(
+            onPressed: () => _store.apply(Decrement()),
+          ),
+        ],
       ),
     );
   }
 
+  get store => _store;
+}
+
+final _store = Store(0);
+
+class Decrement extends Act<int> {
   @override
-  Store get store => _store;
+  act(state, _, __) => state - 1;
 }
 
-final _store = Store(appRM, initialState: 0);
-
-int appRM(state, action) {
-  return switch (action) {
-    Increment() => state + 1,
-    Decrement() => state - 1,
-    _ => state,
-  };
+class Increment extends Act<int> {
+  @override
+  act(state, _, __) => state + 1;
 }
-
-class Decrement {}
-
-class Increment {}

@@ -1,8 +1,9 @@
 part of 'manager.dart';
 
-typedef NextDispatcher(dynamic action);
-typedef T Reducer<T>(T state, dynamic action);
-typedef ReduxUI<T> = _UI<T>;
+// typedef NextDispatcher(dynamic action);
+// typedef T Reducer<T>(T state, dynamic action);
+
+typedef UI = _UI<dynamic>;
 
 abstract class TopUI<T> extends StatelessWidget {
   const TopUI({super.key});
@@ -19,9 +20,6 @@ abstract class TopUI<T> extends StatelessWidget {
     return StoreProvider(
       store: store,
       child: StoreBuilder<T>(
-        onInit: (store) {
-          log('$this');
-        },
         builder: (context, store) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,

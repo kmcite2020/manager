@@ -12,9 +12,7 @@ class StoreProvider<S> extends InheritedWidget {
   static Store<S> of<S>(BuildContext context, {bool listen = true}) {
     final provider = switch (listen) {
       true => context.dependOnInheritedWidgetOfExactType<StoreProvider<S>>(),
-      false => context
-          .getElementForInheritedWidgetOfExactType<StoreProvider<S>>()
-          ?.widget,
+      false => context.getElementForInheritedWidgetOfExactType<StoreProvider<S>>()?.widget,
     } as StoreProvider<S>?;
     return switch (provider == null) {
       true => throw StoreProviderError<StoreProvider<S>>(),
@@ -23,8 +21,7 @@ class StoreProvider<S> extends InheritedWidget {
   }
 
   @override
-  bool updateShouldNotify(StoreProvider<S> oldWidget) =>
-      _store != oldWidget._store;
+  bool updateShouldNotify(StoreProvider<S> oldWidget) => _store != oldWidget._store;
 }
 
 typedef Widget ModelBuilder<Model>(BuildContext context, Model model);
@@ -148,8 +145,7 @@ class _StoreStreamListener<S, T> extends StatefulWidget {
   }
 }
 
-class _StoreStreamListenerState<S, T>
-    extends State<_StoreStreamListener<S, T>> {
+class _StoreStreamListenerState<S, T> extends State<_StoreStreamListener<S, T>> {
   late Stream<T> _stream;
   T? _latestValue;
   Object? _latestError;
