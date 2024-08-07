@@ -252,11 +252,13 @@ class _StoreStreamListenerState<S, T> extends State<_StoreStreamListener<S, T>> 
     final previousValue = _latestValue;
     _latestValue = model;
     if (widget.onDidChange != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          widget.onDidChange!(previousValue, _requireLatestValue);
-        }
-      });
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) {
+          if (mounted) {
+            widget.onDidChange!(previousValue, _requireLatestValue);
+          }
+        },
+      );
     }
     sink.add(model);
   }
@@ -293,8 +295,8 @@ class StoreProviderError<S> extends Error {
   * Ensure you are using consistent and complete imports. 
   E.g. always use `import 'package:my_app/app_state.dart';
   
-If none of these solutions work, please file a bug at:
-https://github.com/brianegan/flutter_redux/issues/new
+  If none of these solutions work, please file a bug at:
+  https://github.com/brianegan/flutter_redux/issues/new
       ''';
   }
 }

@@ -18,7 +18,7 @@ typedef T FromJson<T>(Map<String, dynamic> json);
 abstract class Act<S> {
   void before() {}
   void after() {}
-  S reduce(S state);
+  FutureOr<S> reduce(S state);
 }
 
 abstract class Middleware<S> {
@@ -40,8 +40,7 @@ class Store<S> {
 
   final bool sync;
   final List<Middleware<S>> middlewares;
-  late final StreamController<SnapState<S>> _changeController =
-      StreamController<SnapState<S>>.broadcast(sync: sync);
+  late final _changeController = StreamController<SnapState<S>>.broadcast(sync: sync);
   final FromJson<S>? fromJson;
   static const _key = 'app_state';
 
@@ -67,10 +66,7 @@ class Store<S> {
   S get state => snap.state;
   bool get loading => _snapState.loading;
 
-  void apply(Act<S> action) {
-    _applyMiddleware(action, 0);
-  }
-
+  Future<void> apply(Act<S> action) => _applyMiddleware(action, 0);
   Future<void> _applyMiddleware(Act<S> action, int index) async {
     if (index < middlewares.length) {
       await middlewares[index]
@@ -80,13 +76,13 @@ class Store<S> {
     }
   }
 
-  void _processAct(Act<S> action) {
+  void _processAct(Act<S> action) async {
     action.before();
     _setLoading(true);
     try {
-      final newStateData = action.reduce(_snapState.state);
+      final newStateData = await action.reduce(_snapState.state);
       _snapState = _snapState.copyWith(
-        data: newStateData,
+        data: await newStateData,
         status: SnapStatus.success,
         loading: false,
       );

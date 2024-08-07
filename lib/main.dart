@@ -5,18 +5,23 @@ import 'package:flutter/material.dart';
 
 import 'package:manager/manager.dart';
 
-void main() => Store.init().then(
-      (value) => runApp(
-        App(),
-      ),
-    );
+void main() {
+  Store.init().then(
+    (_) {
+      runApp(App());
+    },
+  );
+}
 
 class App extends TopUI {
   @override
   Widget home(context) {
     return Scaffold(
       appBar: AppBar(),
-      body: store.loading ? CircularProgressIndicator() : store.state.text().center(),
+      body: switch (store.loading) {
+        false => store.state.text().center(),
+        _ => CircularProgressIndicator(),
+      },
       floatingActionButton: ButtonBar(
         children: [
           FloatingActionButton(
@@ -69,42 +74,19 @@ class DoubleInc extends Act<Serri> {
 
 class Serri {
   final int count;
-  Serri({
-    required this.count,
-  });
-
-  Serri copyWith({
-    int? count,
-  }) {
-    return Serri(
-      count: count ?? this.count,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'count': count,
-    };
-  }
-
-  factory Serri.fromMap(Map<String, dynamic> map) {
-    return Serri(
-      count: map['count'] as int,
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
+  Serri({required this.count});
+  Serri copyWith({int? count}) => Serri(count: count ?? this.count);
+  factory Serri.fromMap(Map<String, dynamic> map) => Serri(count: map['count'] as int);
   factory Serri.fromJson(String source) =>
       Serri.fromMap(json.decode(source) as Map<String, dynamic>);
 
+  Map<String, dynamic> toMap() => <String, dynamic>{'count': count};
+  String toJson() => json.encode(toMap());
   @override
   String toString() => 'Serri(count: $count)';
-
   @override
   bool operator ==(covariant Serri other) {
     if (identical(this, other)) return true;
-
     return other.count == count;
   }
 
