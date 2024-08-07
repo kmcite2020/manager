@@ -15,7 +15,8 @@ part 'ui_helpers.dart';
 part 'extensions.dart';
 part 'ui.dart';
 
-typedef Apply<S> = void Function(Act<S>);
+typedef Apply<S> = void Function(Act<S> act);
+typedef NextDispatcher<S> = void Function(Act<S> act);
 
 abstract class Act<S> {
   void before() {}
@@ -23,70 +24,58 @@ abstract class Act<S> {
   S reduce(S state);
 }
 
-class Sparkle<S> extends Spark<S> {
-  final initialState;
-  Sparkle(this.initialState);
-  S call([S? newState]) {
-    if (newState != null) {
-      _state = newState;
-    }
-    return _state;
-  }
-}
-
-abstract class Spark<S> {
-  S get initialState;
-  late S _state = initialState;
-  late final _changeController = StreamController<S>.broadcast();
-
-  Stream<S> get stream => _changeController.stream;
-
-  S get state => _state;
-  Future teardown() => _changeController.close();
-}
-
-class Store<S> extends Spark<S> {
-  S get state => _state;
-  final initialState;
-  late final _changeController = StreamController<S>.broadcast(sync: sync);
-  final bool sync;
-  final bool distinct;
-  final List<Middleware<S>> middlewares;
-  void apply(Act<S> action) {
-    applyMiddlewares(action, 0);
-    final state = action.reduce(_state);
-    if (distinct && state == _state) return;
-    _state = state;
-    _changeController.add(state);
-  }
-
-  void applyMiddlewares(Act<S> act, int index) {
-    switch (index < middlewares.length) {
-      case true:
-        middlewares[index].apply(
-          this,
-          act,
-          (nextAction) => applyMiddlewares(nextAction, index + 1),
-        );
-      case false:
-    }
-  }
-
-  Store(
-    this.initialState, {
-    this.sync = false,
-    this.distinct = false,
-    this.middlewares = const [],
-  });
-}
-
 abstract class Middleware<S> {
   void apply(Store<S> store, Act<S> act, NextDispatcher<S> next);
 }
 
-typedef void NextDispatcher<S>(Act<S> act);
+class Store<S> {
+  S _state;
+  final bool sync;
+  final bool distinct;
+  final List<Middleware<S>> middlewares;
+  late final StreamController<S> _changeController = StreamController<S>.broadcast(sync: sync);
+
+  Store(
+    this._state, {
+    this.sync = false,
+    this.distinct = false,
+    this.middlewares = const [],
+  });
+
+  Stream<S> get stream => _changeController.stream;
+  S get state => _state;
+
+  void apply(Act<S> action) {
+    _applyMiddleware(action, 0);
+  }
+
+  void _applyMiddleware(Act<S> action, int index) {
+    if (index < middlewares.length) {
+      middlewares[index].apply(
+        this,
+        action,
+        (nextAction) => _applyMiddleware(nextAction, index + 1),
+      );
+    } else {
+      processAct(action);
+    }
+  }
+
+  void processAct(Act<S> action) {
+    action.before();
+    final newState = action.reduce(_state);
+    if (!distinct || newState != _state) {
+      _state = newState;
+      _changeController.add(_state);
+    }
+    action.after();
+  }
+
+  Future<void> teardown() => _changeController.close();
+}
 
 
+// 
 // class Store<S> {
 //   Reducer<S> reducer;
 //   late final StreamController<S> _changeController =

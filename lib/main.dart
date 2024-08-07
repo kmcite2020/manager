@@ -10,7 +10,7 @@ class App extends TopUI {
   Widget home(context) {
     return Scaffold(
       appBar: AppBar(),
-      body: _store.state.text().center(),
+      body: store.state.text().center(),
       floatingActionButton: ButtonBar(
         children: [
           FloatingActionButton(
@@ -24,10 +24,23 @@ class App extends TopUI {
     );
   }
 
-  get store => _store;
+  Store<int> get store => _store;
 }
 
-final _store = Store(0);
+final _store = Store(
+  0,
+  middlewares: [
+    LoggingMW(),
+  ],
+);
+
+class LoggingMW extends Middleware<int> {
+  @override
+  void apply(Store<int> store, Act<int> act, NextDispatcher<int> next) {
+    print(act);
+    next(act);
+  }
+}
 
 class Decrement extends Act<int> {
   @override
@@ -42,6 +55,6 @@ class Increment extends Act<int> {
 class DoubleInc extends Act<int> {
   @override
   int reduce(int state) {
-    return 0;
+    return state + 2;
   }
 }
