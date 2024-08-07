@@ -1,73 +1,63 @@
-part of 'manager.dart';
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'dynamic_updater.dart';
 
-typedef UI = _UI<dynamic>;
+abstract class UI extends StatefulWidget {
+  // ignore: public_member_api_docs
+  const UI({Key? key}) : super(key: key);
 
-abstract class TopUI<T> extends StatelessWidget {
-  const TopUI({super.key});
-
-  Store<T> get store;
-
-  GlobalKey<NavigatorState>? get navigatorKey => null;
-  Widget home(BuildContext context);
-
-  ThemeMode get themeMode => ThemeMode.system;
-  ThemeData get theme => ThemeData();
-  ThemeData get darkTheme => ThemeData.dark();
-
-  @override
-  Widget build(context) {
-    return StoreProvider(
-      store: store,
-      child: StoreBuilder<T>(
-        builder: (context, store) {
-          return MaterialApp(
-            debugShowCheckedModeBanner: false,
-            home: home(context),
-            themeMode: themeMode,
-            theme: theme,
-            darkTheme: darkTheme,
-            navigatorKey: navigatorKey,
-          );
-        },
-      ),
-    );
-  }
-}
-
-abstract class _UI<S> extends StatefulWidget {
-  static Store<S> _identity<S>(Store<S> store) => store;
-  final bool rebuildOnChange;
-  final OnInit<S>? onInit;
-  final OnDispose<S>? onDispose;
-  final OnWillChange<Store<S>>? onWillChange;
-  final OnDidChange<Store<S>>? onDidChange;
-  final OnInitialBuild<Store<S>>? onInitialBuild;
-  const _UI({
-    Key? key,
-    this.onInit,
-    this.onDispose,
-    this.rebuildOnChange = true,
-    this.onWillChange,
-    this.onDidChange,
-    this.onInitialBuild,
-  }) : super(key: key);
+  /// the build function
   Widget build(BuildContext context);
+
   @override
-  State<_UI<S>> createState() => _UIState<S>();
+  // ignore: library_private_types_in_public_api
+  _ExtendedState createState() => _ExtendedState();
 }
 
-class _UIState<S> extends State<_UI<S>> {
+class _ExtendedState extends State<UI> {
+  _ExtendedState() {
+    _observer = DynamicUpdater();
+  }
+
+  DynamicUpdater? _observer;
+  late StreamSubscription _subscription;
+  bool _afterFirstLayout = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.endOfFrame.then((_) {
+      _afterFirstLayout = true;
+    });
+    // listen the observable events
+    _subscription = _observer!.listen(_rebuild);
+  }
+
+  @override
+  void dispose() {
+    _afterFirstLayout = false;
+    // remove the subsciptions when the widget is destroyed
+    _subscription.cancel();
+    if (_observer?.canUpdate ?? false) {
+      _observer?.close();
+    }
+
+    super.dispose();
+  }
+
+  void _rebuild(_) {
+    if (_afterFirstLayout && mounted) {
+      setState(() {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<S, Store<S>>(
-      builder: (context, store) => widget.build(context),
-      converter: _UI._identity,
-      rebuildOnChange: widget.rebuildOnChange,
-      onInit: widget.onInit,
-      onDispose: widget.onDispose,
-      onWillChange: widget.onWillChange,
-      onDidChange: widget.onDidChange,
-      onInitialBuild: widget.onInitialBuild,
-    );
+    final observer = DynamicUpdater.dynamicUpdater;
+
+    DynamicUpdater.dynamicUpdater = _observer;
+    final result = widget.build(context);
+    DynamicUpdater.dynamicUpdater = observer;
+    return result;
   }
 }

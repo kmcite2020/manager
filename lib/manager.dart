@@ -1,5 +1,3 @@
-// ignore_for_file: unused_field
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
@@ -8,165 +6,176 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:uuid/uuid.dart';
+
+import 'rm.dart';
 export 'package:manager/manager.dart';
-part 'ui_helpers.dart';
 part 'extensions.dart';
-part 'ui.dart';
+
+Future<void> RUN(Widget app) => _init().then((_) => runApp(app));
+
+late Box storage;
+
+Future<void> _init() async {
+  await Hive.initFlutter();
+  final app = await PackageInfo.fromPlatform();
+  storage = await Hive.openBox('${app.appName}_${app.version}');
+}
 
 typedef T FromJson<T>(Map<String, dynamic> json);
 
-abstract class Act<S> {
-  void before() {}
-  void after() {}
+abstract class Action<S> {
+  FutureOr<void> before() {}
+  FutureOr<void> after() {}
   FutureOr<S> reduce(S state);
 }
 
 abstract class Middleware<S> {
-  Future<void> apply(Store<S> store, Act<S> act, NextDispatcher<S> next);
+  Future<void> apply(Store<S> store, Action<S> act, NextDispatcher<S> next);
 }
 
-typedef NextDispatcher<S> = Future<void> Function(Act<S> act);
-
-late Box storage;
+typedef NextDispatcher<S> = Future<void> Function(Action<S> act);
 
 class Store<S> {
-  static Future<void> init() async {
-    await Hive.initFlutter();
-    final app = await PackageInfo.fromPlatform();
-    storage = await Hive.openBox('${app.appName}_${app.version}');
+  final S initialState;
+
+  final List<Middleware<S>> middlewares;
+
+  final String key; // for persistence -> empty mean no persistence
+  final FromJson<S>? fromJson; // persistence
+  bool get persistent => fromJson != null && key.isNotEmpty;
+
+  final Spark<Status> statusRM = Sparkle(Status.initial);
+  Status status([Status? _status]) {
+    if (_status != null) statusRM.state = _status;
+    return statusRM.state;
   }
 
-  SnapState<S> _snapState;
+  bool get loading => status() == Status.loading;
 
-  final bool sync;
-  final List<Middleware<S>> middlewares;
-  late final _changeController = StreamController<SnapState<S>>.broadcast(sync: sync);
-  final FromJson<S>? fromJson;
-  static const _key = 'app_state';
+  final Spark<String> errorRM = Sparkle('');
+  String error([String? _error]) {
+    if (_error != null) errorRM.state = _error;
+    return errorRM.state;
+  }
+
+  late final Spark<S> stateRM = Sparkle(initialState);
+  S _state([S? _state]) {
+    if (_state != null) stateRM.state = _state;
+    return stateRM.state;
+  }
+
+  S call([Action<S>? action]) {
+    if (action != null) {
+      _apply(action);
+    }
+    return _state();
+  }
 
   Store(
-    S initialState, {
-    this.sync = false,
+    this.initialState, {
     this.middlewares = const [],
     this.fromJson,
-  }) : _snapState = SnapState(state: initialState) {
-    final status = fromJson != null ? 'enabled' : 'disabled';
-    final type = switch ((state as dynamic).toJson().runtimeType) {
+    this.key = '',
+  }) {
+    final status = persistent ? 'enabled' : 'disabled';
+    final type = switch ((_state() as dynamic).toJson().runtimeType) {
       Map => 'freezed',
       String => 'data class',
       _ => 'unknown',
     };
     log('serialization: $status');
     log('type: $type');
-    read();
+    if (persistent) read();
   }
 
-  Stream<S> get stream => _changeController.stream.map((snap) => snap.state);
-  SnapState<S> get snap => _snapState;
-  S get state => snap.state;
-  bool get loading => _snapState.loading;
+  Future<void> _apply(Action<S> action) => _applyMiddleware(action, 0);
 
-  Future<void> apply(Act<S> action) => _applyMiddleware(action, 0);
-  Future<void> _applyMiddleware(Act<S> action, int index) async {
+  Future<void> _applyMiddleware(Action<S> action, int index) async {
     if (index < middlewares.length) {
-      await middlewares[index]
-          .apply(this, action, (nextAction) => _applyMiddleware(nextAction, index + 1));
+      await middlewares[index].apply(
+        this,
+        action,
+        (nextAction) => _applyMiddleware(nextAction, index + 1),
+      );
     } else {
       _processAct(action);
     }
   }
 
-  void _processAct(Act<S> action) async {
-    action.before();
-    _setLoading(true);
+  void _processAct(Action<S> action) async {
+    status(Status.loading);
     try {
-      final newStateData = await action.reduce(_snapState.state);
-      _snapState = _snapState.copyWith(
-        data: await newStateData,
-        status: SnapStatus.success,
-        loading: false,
-      );
-      _changeController.add(_snapState);
-      write();
+      await action.before();
+      final nstate = await action.reduce(_state());
+      status(Status.success);
+      _state(nstate);
+      if (persistent) await write();
     } catch (e) {
-      _snapState = _snapState.copyWith(
-        status: SnapStatus.error,
-        error: e.toString(),
-        loading: false,
-      );
-      _changeController.add(_snapState);
+      status(Status.error);
+      error(e.toString());
+    } finally {
+      await action.after();
     }
-    action.after();
-  }
-
-  void _setLoading(bool loading) {
-    _changeController.add(_snapState.copyWith(loading: loading));
   }
 
   void read() {
-    if (fromJson != null) {
-      final storedValue = storage.get(_key);
+    status(Status.loading);
+    try {
+      final storedValue = storage.get(key);
       if (storedValue == null) return;
 
       final json = jsonDecode(storedValue);
-      if (json == null) return;
-
-      final state = fromJson?.call(json);
-      if (state == null) return;
-
-      _snapState = SnapState(
-        state: state,
-        status: SnapStatus.success,
-      );
+      final nstate = fromJson?.call(json);
+      if (nstate == null) return;
+      status(Status.success);
+      _state(nstate);
+    } catch (e) {
+      status(Status.error);
+      error(e.toString());
     }
   }
 
   Future<void> write() async {
-    if (fromJson != null) {
-      try {
-        final jsonState = (_snapState.state as dynamic).toJson();
-        final jsonString = switch (jsonState.runtimeType) {
-          Map => jsonEncode(jsonState),
-          String => jsonState,
-          _ => throw FlutterError('Unexpected result of toJson()'),
-        };
-        await storage.put(_key, jsonString);
-      } catch (e) {
-        print('Error in write(): $e');
-        rethrow;
-      }
+    try {
+      final jsonState = (_state() as dynamic).toJson();
+      final jsonString = switch (jsonState.runtimeType) {
+        Map => jsonEncode(jsonState),
+        String => jsonState,
+        _ => throw FlutterError('Unexpected result of toJson()'),
+      };
+      await storage.put(key, jsonString);
+    } catch (e) {
+      status(Status.error);
+      error(e.toString());
     }
   }
 
-  Future<void> teardown() => _changeController.close();
-}
-
-enum SnapStatus { initial, loading, success, error }
-
-class SnapState<S> {
-  final S state;
-  final SnapStatus status;
-  final String? error;
-  final bool loading;
-
-  SnapState({
-    required this.state,
-    this.status = SnapStatus.initial,
-    this.error,
-    this.loading = false,
-  });
-
-  SnapState<S> copyWith({
-    S? data,
-    SnapStatus? status,
-    String? error,
-    bool? loading,
+  Widget build(
+    Widget Function(S state) data, {
+    Widget Function()? loading,
+    Widget Function(String? error)? onError,
+    Widget Function()? initial,
   }) {
-    return SnapState<S>(
-      state: data ?? this.state,
-      status: status ?? this.status,
-      error: error ?? this.error,
-      loading: loading ?? this.loading,
-    );
+    const indicator = CircularProgressIndicator();
+    switch (status()) {
+      case Status.initial:
+        return initial?.call() ?? loading?.call() ?? indicator;
+      case Status.loading:
+        return loading?.call() ?? indicator;
+      case Status.success:
+        return data.call(_state());
+      case Status.error:
+        return onError?.call(error()) ?? loading?.call() ?? indicator;
+      default:
+        return initial?.call() ?? indicator;
+    }
+  }
+
+  Future<void> teardown() async {
+    await statusRM.close();
+    await errorRM.close();
+    await stateRM.close();
   }
 }
+
+enum Status { initial, loading, success, error }

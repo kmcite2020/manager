@@ -1,16 +1,11 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
-
-import 'package:flutter/material.dart';
-
+import 'package:flutter/material.dart' hide Action;
 import 'package:manager/manager.dart';
 
+import 'top_ui.dart';
+
 void main() {
-  Store.init().then(
-    (_) {
-      runApp(App());
-    },
-  );
+  RUN(App());
 }
 
 class App extends TopUI {
@@ -18,53 +13,53 @@ class App extends TopUI {
   Widget home(context) {
     return Scaffold(
       appBar: AppBar(),
-      body: switch (store.loading) {
-        false => store.state.text().center(),
-        _ => CircularProgressIndicator(),
-      },
+      body: store.build(
+        (_) {
+          return _.text();
+        },
+      ).center(),
       floatingActionButton: ButtonBar(
         children: [
           FloatingActionButton(
-            onPressed: () => _store.apply(DoubleInc()),
+            onPressed: () => store(DoubleInc()),
           ),
           FloatingActionButton(
-            onPressed: () => _store.apply(Decrement()),
+            onPressed: () => store(Decrement()),
           ),
         ],
       ),
     );
   }
-
-  Store<Serri> get store => _store;
 }
 
-final _store = Store<Serri>(
+final store = Store<Serri>(
   Serri(count: 0),
   middlewares: [
     LoggingMW(),
   ],
   fromJson: Serri.fromMap,
+  key: 'app_stateww',
 );
 
 class LoggingMW extends Middleware<Serri> {
   @override
-  apply(Store<Serri> store, Act<Serri> act, NextDispatcher<Serri> next) async {
+  apply(Store<Serri> store, Action<Serri> act, NextDispatcher<Serri> next) async {
     print(act);
     next(act);
   }
 }
 
-class Decrement extends Act<Serri> {
+class Decrement extends Action<Serri> {
   @override
   reduce(state) => state.copyWith(count: state.count - 1);
 }
 
-class Increment extends Act<Serri> {
+class Increment extends Action<Serri> {
   @override
   reduce(state) => state.copyWith(count: state.count + 1);
 }
 
-class DoubleInc extends Act<Serri> {
+class DoubleInc extends Action<Serri> {
   @override
   reduce(state) async {
     await Future.delayed(Duration(seconds: 2));
