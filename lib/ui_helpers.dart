@@ -140,9 +140,7 @@ class _StoreStreamListener<S, T> extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() {
-    return _StoreStreamListenerState<S, T>();
-  }
+  State<StatefulWidget> createState() => _StoreStreamListenerState<S, T>();
 }
 
 class _StoreStreamListenerState<S, T> extends State<_StoreStreamListener<S, T>> {

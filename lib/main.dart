@@ -1,16 +1,22 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+
 import 'package:manager/manager.dart';
 
-void main() {
-  runApp(App());
-}
+void main() => Store.init().then(
+      (value) => runApp(
+        App(),
+      ),
+    );
 
 class App extends TopUI {
   @override
   Widget home(context) {
     return Scaffold(
       appBar: AppBar(),
-      body: store.state.text().center(),
+      body: store.loading ? CircularProgressIndicator() : store.state.text().center(),
       floatingActionButton: ButtonBar(
         children: [
           FloatingActionButton(
@@ -24,37 +30,84 @@ class App extends TopUI {
     );
   }
 
-  Store<int> get store => _store;
+  Store<Serri> get store => _store;
 }
 
-final _store = Store(
-  0,
+final _store = Store<Serri>(
+  Serri(count: 0),
   middlewares: [
     LoggingMW(),
   ],
+  fromJson: Serri.fromMap,
 );
 
-class LoggingMW extends Middleware<int> {
+class LoggingMW extends Middleware<Serri> {
   @override
-  void apply(Store<int> store, Act<int> act, NextDispatcher<int> next) {
+  apply(Store<Serri> store, Act<Serri> act, NextDispatcher<Serri> next) async {
     print(act);
     next(act);
   }
 }
 
-class Decrement extends Act<int> {
+class Decrement extends Act<Serri> {
   @override
-  reduce(state) => state - 1;
+  reduce(state) => state.copyWith(count: state.count - 1);
 }
 
-class Increment extends Act<int> {
+class Increment extends Act<Serri> {
   @override
-  reduce(state) => state + 1;
+  reduce(state) => state.copyWith(count: state.count + 1);
 }
 
-class DoubleInc extends Act<int> {
+class DoubleInc extends Act<Serri> {
   @override
-  int reduce(int state) {
-    return state + 2;
+  reduce(state) async {
+    await Future.delayed(Duration(seconds: 2));
+    return state.copyWith(count: state.count + 2);
   }
+}
+
+class Serri {
+  final int count;
+  Serri({
+    required this.count,
+  });
+
+  Serri copyWith({
+    int? count,
+  }) {
+    return Serri(
+      count: count ?? this.count,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'count': count,
+    };
+  }
+
+  factory Serri.fromMap(Map<String, dynamic> map) {
+    return Serri(
+      count: map['count'] as int,
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory Serri.fromJson(String source) =>
+      Serri.fromMap(json.decode(source) as Map<String, dynamic>);
+
+  @override
+  String toString() => 'Serri(count: $count)';
+
+  @override
+  bool operator ==(covariant Serri other) {
+    if (identical(this, other)) return true;
+
+    return other.count == count;
+  }
+
+  @override
+  int get hashCode => count.hashCode;
 }
