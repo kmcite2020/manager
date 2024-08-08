@@ -9,6 +9,7 @@ abstract class TopUI extends UI {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: home(context),
+      theme: ThemeData.dark(useMaterial3: false),
     );
   }
 }

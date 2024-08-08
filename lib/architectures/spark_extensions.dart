@@ -1,51 +1,55 @@
 import 'dart:async';
 
-import 'rm.dart';
+import 'spark.dart';
 
-extension RxExtension<T> on T {
-  Spark<T> get obs => Sparkle<T>(this);
+extension SparkExtension<T> on T {
+  Spark<T> get spark => Sparkle<T>(this);
 }
 
-extension RMExtensions<T> on Spark<T> {
+extension SparkExtensions<T> on Spark<T> {
   /// [callback] is called every time that the [Rx<T>] changes.
   ///
   /// If [condition] is not null the [callback] only is called if [condition] returns true.
-  RxReaction ever(void Function(T) callback, {bool Function(T)? condition}) {
+  SparkReaction ever(void Function(T) callback, {bool Function(T)? condition}) {
     // ignore: cancel_subscriptions
-    final StreamSubscription subscription = stream.listen((event) {
-      if (condition != null) {
-        if (condition(event)) {
+    final StreamSubscription subscription = stream.listen(
+      (event) {
+        if (condition != null) {
+          if (condition(event)) {
+            callback(event);
+          }
+        } else {
           callback(event);
         }
-      } else {
-        callback(event);
-      }
-    });
-    return RxReaction(subscription, null);
+      },
+    );
+    return SparkReaction(subscription, null);
   }
 
   /// the [callback] will be executed only 1 time
   ///
   /// If [condition] is not null the [callback] only is called if [condition] returns true.
-  RxReaction once(void Function(T) callback, {bool Function(T)? condition}) {
-    late RxReaction reaction;
+  SparkReaction once(void Function(T) callback, {bool Function(T)? condition}) {
+    late SparkReaction reaction;
     // ignore: cancel_subscriptions
-    StreamSubscription subscription = stream.listen((event) {
-      if (condition != null) {
-        if (condition(event)) {
+    StreamSubscription subscription = stream.listen(
+      (event) {
+        if (condition != null) {
+          if (condition(event)) {
+            callback(event);
+            reaction.dispose();
+          }
+        } else {
           callback(event);
           reaction.dispose();
         }
-      } else {
-        callback(event);
-        reaction.dispose();
-      }
-    });
-    return reaction = RxReaction(subscription, null);
+      },
+    );
+    return reaction = SparkReaction(subscription, null);
   }
 
   /// the [callback] will be called every certain time interval ignoring the other changes
-  RxReaction interval(Duration duration, void Function(T) callback) {
+  SparkReaction interval(Duration duration, void Function(T) callback) {
     var debouncer = Debouncer(duration);
     // ignore: cancel_subscriptions
     final StreamSubscription subscription = stream.listen(
@@ -60,11 +64,11 @@ extension RMExtensions<T> on Spark<T> {
         }
       },
     );
-    return RxReaction(subscription, debouncer);
+    return SparkReaction(subscription, debouncer);
   }
 
   /// Every time that the [Rx<T>] changes the [callback] will be called after a delay.
-  RxReaction debounce(Duration delay, void Function(T) callback) {
+  SparkReaction debounce(Duration delay, void Function(T) callback) {
     final debouncer = Debouncer(delay);
     // ignore: cancel_subscriptions
     final StreamSubscription subscription = stream.listen(
@@ -76,13 +80,13 @@ extension RMExtensions<T> on Spark<T> {
         );
       },
     );
-    return RxReaction(subscription, debouncer);
+    return SparkReaction(subscription, debouncer);
   }
 }
 
 /// this class allow us to cancel schedules tasks and subscriptions
-class RxReaction {
-  RxReaction(this._subscription, this._debouncer);
+class SparkReaction {
+  SparkReaction(this._subscription, this._debouncer);
 
   final StreamSubscription _subscription;
   final Debouncer? _debouncer;

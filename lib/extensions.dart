@@ -1,4 +1,5 @@
-part of 'manager.dart';
+import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 extension DynamicExtensions on dynamic {
   Text text({double textScaleFactor = 1}) {

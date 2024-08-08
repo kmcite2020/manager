@@ -16,10 +16,10 @@ abstract class UI extends StatefulWidget {
 
 class _ExtendedState extends State<UI> {
   _ExtendedState() {
-    _observer = DynamicUpdater();
+    updater = DynamicUpdater();
   }
 
-  DynamicUpdater? _observer;
+  DynamicUpdater? updater;
   late StreamSubscription _subscription;
   bool _afterFirstLayout = false;
 
@@ -30,7 +30,7 @@ class _ExtendedState extends State<UI> {
       _afterFirstLayout = true;
     });
     // listen the observable events
-    _subscription = _observer!.listen(_rebuild);
+    _subscription = updater!.listen(_rebuild);
   }
 
   @override
@@ -38,8 +38,8 @@ class _ExtendedState extends State<UI> {
     _afterFirstLayout = false;
     // remove the subsciptions when the widget is destroyed
     _subscription.cancel();
-    if (_observer?.canUpdate ?? false) {
-      _observer?.close();
+    if (updater?.canUpdate ?? false) {
+      updater?.close();
     }
 
     super.dispose();
@@ -53,11 +53,11 @@ class _ExtendedState extends State<UI> {
 
   @override
   Widget build(BuildContext context) {
-    final observer = DynamicUpdater.dynamicUpdater;
+    final observer = DynamicUpdater.instance;
 
-    DynamicUpdater.dynamicUpdater = _observer;
+    DynamicUpdater.instance = updater;
     final result = widget.build(context);
-    DynamicUpdater.dynamicUpdater = observer;
+    DynamicUpdater.instance = observer;
     return result;
   }
 }

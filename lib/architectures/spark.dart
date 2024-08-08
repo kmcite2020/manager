@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'dynamic_updater.dart';
+import '../ui/dynamic_updater.dart';
 
 class Sparkle<T> extends Spark<T> {
   @override
@@ -8,7 +8,7 @@ class Sparkle<T> extends Spark<T> {
   Sparkle(this.initialState);
 }
 
-/// RM class to work with observables
+/// Spark class to work with observables
 abstract class Spark<T> {
   T get initialState;
   late T _state = initialState;
@@ -28,9 +28,9 @@ abstract class Spark<T> {
   bool get hasListeners => controller.hasListener;
 
   /// update the value and add a event sink to the [StreamController]
-  set state(T newValue) {
-    if (_state != newValue) {
-      _state = newValue;
+  set state(T newState) {
+    if (_state != newState) {
+      _state = newState;
       controller.sink.add(_state);
     }
   }
@@ -39,8 +39,8 @@ abstract class Spark<T> {
   T get state {
     // if we have a UI accessing to the current value
     // we add a listener for that Widget
-    if (DynamicUpdater.dynamicUpdater != null) {
-      DynamicUpdater.dynamicUpdater!.subscribe(this);
+    if (DynamicUpdater.instance != null) {
+      DynamicUpdater.instance!.subscribe(this);
     }
     return _state;
   }

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:manager/rm.dart';
+import 'package:manager/architectures/spark.dart';
 
 /// class to add dynamic updates into a UI widget
 class DynamicUpdater<T> {
@@ -7,7 +7,7 @@ class DynamicUpdater<T> {
   Spark<T?> dynamicUpdaterRM = Sparkle(null);
 
   /// used to create a tmp RxNotifier since a RxBuilder Widget
-  static DynamicUpdater? dynamicUpdater;
+  static DynamicUpdater? instance;
 
   /// store the subscriptions for one observable
   final Map<Spark, List<StreamSubscription>> _subscriptions = {};
@@ -20,7 +20,8 @@ class DynamicUpdater<T> {
     // if the current observable is not in the subscriptions
     if (!_subscriptions.containsKey(rm)) {
       // create a Subscription for this observable
-      final StreamSubscription subscription = rm.stream.listen(dynamicUpdaterRM.controller.add);
+      final StreamSubscription subscription =
+          rm.stream.listen(dynamicUpdaterRM.controller.add);
 
       /// get the subscriptions for this Rx and add the new subscription
       final listSubscriptions = _subscriptions[rm] ?? [];
