@@ -53,7 +53,7 @@ abstract class Bloc<Event, State> extends Spark<State> {
     };
   }
 
-  register<E extends Event>(
+  void register<E extends Event>(
     void Function(E Function([State? newState]) modifier) handler,
   ) {
     handlers[E] = (event) {
