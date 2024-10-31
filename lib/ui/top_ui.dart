@@ -1,15 +1,22 @@
-import 'package:flutter/material.dart';
+import '../manager.dart';
 
-import 'ui.dart';
+abstract class TopUI extends UIv2 {
+  const TopUI({super.key});
 
-abstract class TopUI extends UI {
   Widget home(BuildContext context);
+
+  ThemeMode get themeMode => ThemeMode.system;
+  ThemeData get theme => ThemeData.light();
+  ThemeData get darkTheme => ThemeData.dark();
   @override
   Widget build(BuildContext context) {
+    FlutterNativeSplash.remove();
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: home(context),
-      theme: ThemeData.dark(useMaterial3: false),
+      theme: theme,
+      darkTheme: darkTheme,
+      themeMode: themeMode,
     );
   }
 }

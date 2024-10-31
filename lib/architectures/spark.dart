@@ -1,7 +1,14 @@
-import 'dart:async';
-
+import '../manager.dart';
 import '../ui/dynamic_updater.dart';
 
+/// A [Sparkle] class that extends [Spark] and holds an initial state of type [T].
+///
+/// The [Sparkle] class provides a [StreamController] to emit changes in the current observable,
+/// and methods to update the state and retrieve the current state. It also checks if there are
+/// any listeners for the observable.
+///
+/// The [Spark] class is an abstract class that provides the basic functionality for working
+/// with observables, including the [stream], [state], and [close] methods.
 class Sparkle<T> extends Spark<T> {
   @override
   final T initialState;

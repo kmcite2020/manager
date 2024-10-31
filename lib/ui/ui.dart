@@ -1,20 +1,22 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
+import '../manager.dart';
 import 'dynamic_updater.dart';
 
-abstract class UI extends StatefulWidget {
-  // ignore: public_member_api_docs
-  const UI({Key? key}) : super(key: key);
+class GUI extends UIv2 {
+  final Widget Function(BuildContext context) builder;
+  const GUI(this.builder, {super.key});
+  @override
+  Widget build(BuildContext context) => builder(context);
+}
 
-  /// the build function
+abstract class UIv2 extends StatefulWidget {
+  const UIv2({super.key});
   Widget build(BuildContext context);
 
   @override
-  // ignore: library_private_types_in_public_api
   _ExtendedState createState() => _ExtendedState();
 }
 
-class _ExtendedState extends State<UI> {
+class _ExtendedState extends State<UIv2> {
   _ExtendedState() {
     updater = DynamicUpdater();
   }
@@ -54,7 +56,6 @@ class _ExtendedState extends State<UI> {
   @override
   Widget build(BuildContext context) {
     final observer = DynamicUpdater.instance;
-
     DynamicUpdater.instance = updater;
     final result = widget.build(context);
     DynamicUpdater.instance = observer;

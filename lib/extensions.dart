@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
+import 'manager.dart';
 
 extension DynamicExtensions on dynamic {
-  Text text({double textScaleFactor = 1}) {
+  Text text({double textScaleFactor = 1, TextStyle? style}) {
     return Text(
       toString(),
       textScaler: TextScaler.linear(textScaleFactor),
+      style: style,
     );
   }
 }
@@ -51,3 +51,14 @@ extension WidgetExtensions on Widget {
 }
 
 String get randomID => Uuid().v8();
+
+PersistState<T> persisted<T>(
+  String key,
+  FutureOr<T> Function(Map<String, dynamic> json)? fromJson,
+) {
+  return PersistState(
+    key: key,
+    toJson: jsonEncode,
+    fromJson: (json) => fromJson!.call(jsonDecode(json)),
+  );
+}

@@ -1,5 +1,4 @@
-import 'dart:async';
-import 'package:manager/architectures/spark.dart';
+import 'package:manager/manager.dart';
 
 /// class to add dynamic updates into a UI widget
 class DynamicUpdater<T> {
@@ -16,29 +15,29 @@ class DynamicUpdater<T> {
   // used by the RxBuilder to check if the builder method contains an observable
   bool get canUpdate => subscriptions.isNotEmpty;
 
-  void subscribe(Spark<T> rm) {
+  void subscribe(Spark<T> spark) {
     // if the current observable is not in the subscriptions
-    if (!_subscriptions.containsKey(rm)) {
+    if (!_subscriptions.containsKey(spark)) {
       // create a Subscription for this observable
       final StreamSubscription subscription =
-          rm.stream.listen(dynamicUpdaterRM.controller.add);
+          spark.stream.listen(dynamicUpdaterRM.controller.add);
 
       /// get the subscriptions for this Rx and add the new subscription
-      final listSubscriptions = _subscriptions[rm] ?? [];
+      final listSubscriptions = _subscriptions[spark] ?? [];
       listSubscriptions.add(subscription);
-      _subscriptions[rm] = listSubscriptions;
+      _subscriptions[spark] = listSubscriptions;
     }
   }
 
-  /// used by the RxBuilder to listen the changes in a observable
+  /// used by the GUI/UIv2 to listen the changes in a observable
   StreamSubscription<T?> listen(void Function(T?) _) {
     return dynamicUpdaterRM.stream.listen(_);
   }
 
   /// Closes the subscriptions for this RM, releasing the resources.
   FutureOr<void> close() async {
-    for (final e in _subscriptions.values) {
-      for (final subs in e) {
+    for (final subscription in _subscriptions.values) {
+      for (final subs in subscription) {
         await subs.cancel();
       }
     }
